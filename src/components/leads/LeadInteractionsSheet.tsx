@@ -10,6 +10,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Lead } from '@/context/LeadsContext'
 import { LeadTasksSection } from './LeadTasksSection'
+import { LeadInteractionsSection } from './LeadInteractionsSection'
 
 interface LeadInteractionsSheetProps {
   lead: Lead | null
@@ -52,7 +53,7 @@ export function LeadInteractionsSheet({
             value="interactions"
             className="flex-1 flex flex-col overflow-hidden data-[state=inactive]:hidden"
           >
-            {/* O conteúdo de interações foi removido conforme especificado */}
+            <LeadInteractionsSection lead={lead} />
           </TabsContent>
 
           <TabsContent
