@@ -31,12 +31,14 @@ import { Lead } from '@/context/LeadsContext'
 
 const leadSchema = z.object({
   company: z.string().min(2, 'Empresa é obrigatória'),
+  cnpj: z.string().optional(),
   contactName: z.string().min(2, 'Nome do contato é obrigatório'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   phone: z.string().optional(),
   segment: z.string().optional(),
   size: z.string().optional(),
   origin: z.string().optional(),
+  address: z.string().optional(),
   status: z.enum([
     'Novo Lead',
     'Qualificação',
@@ -66,12 +68,14 @@ export function LeadFormDialog({
     resolver: zodResolver(leadSchema),
     defaultValues: {
       company: '',
+      cnpj: '',
       contactName: '',
       email: '',
       phone: '',
       segment: '',
       size: '',
       origin: '',
+      address: '',
       status: 'Novo Lead',
     },
   })
@@ -80,23 +84,27 @@ export function LeadFormDialog({
     if (initialData) {
       form.reset({
         company: initialData.company,
+        cnpj: initialData.cnpj || '',
         contactName: initialData.contactName,
         email: initialData.email,
         phone: initialData.phone,
         segment: initialData.segment,
         size: initialData.size,
         origin: initialData.origin,
+        address: initialData.address || '',
         status: initialData.status,
       })
     } else {
       form.reset({
         company: '',
+        cnpj: '',
         contactName: '',
         email: '',
         phone: '',
         segment: '',
         size: '',
         origin: '',
+        address: '',
         status: 'Novo Lead',
       })
     }
@@ -139,12 +147,12 @@ export function LeadFormDialog({
               />
               <FormField
                 control={form.control}
-                name="contactName"
+                name="cnpj"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contato</FormLabel>
+                    <FormLabel>CNPJ</FormLabel>
                     <FormControl>
-                      <Input placeholder="João Silva" {...field} />
+                      <Input placeholder="00.000.000/0000-00" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -155,12 +163,12 @@ export function LeadFormDialog({
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="contactName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Contato</FormLabel>
                     <FormControl>
-                      <Input placeholder="joao@empresa.com" {...field} />
+                      <Input placeholder="João Silva" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -182,6 +190,19 @@ export function LeadFormDialog({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="joao@empresa.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="segment"
@@ -211,6 +232,28 @@ export function LeadFormDialog({
                   </FormItem>
                 )}
               />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Endereço</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Av. Paulista, 1000 - São Paulo, SP"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="status"

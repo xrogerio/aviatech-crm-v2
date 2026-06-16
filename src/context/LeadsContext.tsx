@@ -29,12 +29,14 @@ export interface Proposal {
 export interface Lead {
   id: string
   company: string
+  cnpj?: string
   contactName: string
   email: string
   phone: string
   segment: string
   size: string
   origin: string
+  address?: string
   status: LeadStatus
   createdAt: string
   createdBy: string
@@ -83,12 +85,14 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
         const mappedLeads: Lead[] = data.map((dbLead: any) => ({
           id: dbLead.id,
           company: dbLead.empresa,
+          cnpj: dbLead.cnpj || '',
           contactName: dbLead.contato,
           email: dbLead.email || '',
           phone: dbLead.telefone || '',
           segment: dbLead.segmento || '',
           size: dbLead.tamanho || '',
           origin: dbLead.origem || '',
+          address: dbLead.endereco || '',
           status: dbLead.status as LeadStatus,
           createdAt: dbLead.created_at,
           createdBy: dbLead.created_by || '',
@@ -242,12 +246,14 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
     try {
       const dbLead = {
         empresa: newLead.company,
+        cnpj: newLead.cnpj || '',
         contato: newLead.contactName,
         email: newLead.email,
         telefone: newLead.phone,
         segmento: newLead.segment,
         tamanho: newLead.size,
         origem: newLead.origin,
+        endereco: newLead.address || '',
         status: newLead.status,
         created_by: user?.id,
         // organization_id will be set by DB default based on user or trigger
@@ -265,12 +271,14 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
         const mappedLead: Lead = {
           id: data.id,
           company: data.empresa,
+          cnpj: data.cnpj || '',
           contactName: data.contato,
           email: data.email || '',
           phone: data.telefone || '',
           segment: data.segmento || '',
           size: data.tamanho || '',
           origin: data.origem || '',
+          address: data.endereco || '',
           status: data.status as LeadStatus,
           createdAt: data.created_at,
           createdBy: data.created_by || user?.id || '',
@@ -299,14 +307,17 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       )
 
       const dbUpdates: any = {}
-      if (updates.company) dbUpdates.empresa = updates.company
-      if (updates.contactName) dbUpdates.contato = updates.contactName
-      if (updates.email) dbUpdates.email = updates.email
-      if (updates.phone) dbUpdates.telefone = updates.phone
-      if (updates.segment) dbUpdates.segmento = updates.segment
-      if (updates.size) dbUpdates.tamanho = updates.size
-      if (updates.origin) dbUpdates.origem = updates.origin
-      if (updates.status) dbUpdates.status = updates.status
+      if (updates.company !== undefined) dbUpdates.empresa = updates.company
+      if (updates.cnpj !== undefined) dbUpdates.cnpj = updates.cnpj
+      if (updates.contactName !== undefined)
+        dbUpdates.contato = updates.contactName
+      if (updates.email !== undefined) dbUpdates.email = updates.email
+      if (updates.phone !== undefined) dbUpdates.telefone = updates.phone
+      if (updates.segment !== undefined) dbUpdates.segmento = updates.segment
+      if (updates.size !== undefined) dbUpdates.tamanho = updates.size
+      if (updates.origin !== undefined) dbUpdates.origem = updates.origin
+      if (updates.address !== undefined) dbUpdates.endereco = updates.address
+      if (updates.status !== undefined) dbUpdates.status = updates.status
 
       const { error } = await supabase
         .from('leads')

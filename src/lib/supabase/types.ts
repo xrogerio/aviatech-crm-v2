@@ -140,6 +140,44 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string | null
+          read: boolean | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          read?: boolean | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          read?: boolean | null
+          title?: string
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fk_notifications_user_id'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       proposals: {
         Row: {
           created_at: string
@@ -457,6 +495,14 @@ export const Constants = {
 //   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
 //   cnpj: text (not null, default: ''::text)
 //   endereco: text (not null, default: ''::text)
+// Table: notifications
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   title: text (not null)
+//   message: text (nullable)
+//   type: text (nullable)
+//   read: boolean (nullable, default: false)
+//   created_at: timestamp with time zone (nullable, default: now())
 // Table: proposals
 //   id: uuid (not null, default: gen_random_uuid())
 //   lead_id: uuid (nullable)
@@ -496,6 +542,9 @@ export const Constants = {
 // Table: leads
 //   FOREIGN KEY leads_created_by_fkey: FOREIGN KEY (created_by) REFERENCES users(id)
 //   PRIMARY KEY leads_pkey: PRIMARY KEY (id)
+// Table: notifications
+//   FOREIGN KEY fk_notifications_user_id: FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+//   PRIMARY KEY notifications_pkey: PRIMARY KEY (id)
 // Table: proposals
 //   FOREIGN KEY proposals_created_by_fkey: FOREIGN KEY (created_by) REFERENCES users(id)
 //   FOREIGN KEY proposals_lead_id_fkey: FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
@@ -540,6 +589,13 @@ export const Constants = {
 //     USING: (created_by = auth.uid())
 //   Policy "Vendedores view own leads" (SELECT, PERMISSIVE) roles={public}
 //     USING: (created_by = auth.uid())
+// Table: notifications
+//   Policy "authenticated_delete_notifications" (DELETE, PERMISSIVE) roles={authenticated}
+//     USING: (user_id = auth.uid())
+//   Policy "authenticated_select_notifications" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (user_id = auth.uid())
+//   Policy "authenticated_update_notifications" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (user_id = auth.uid())
 // Table: proposals
 //   Policy "Admins and Managers manage all proposals" (ALL, PERMISSIVE) roles={public}
 //     USING: is_admin_or_manager()
