@@ -67,6 +67,7 @@ interface Interaction {
   descricao: string | null
   data: string
   user?: {
+    name: string | null
     role: string
   } | null
 }
@@ -111,6 +112,7 @@ export function LeadInteractionsSheet({
           descricao,
           data,
           user:users (
+            name,
             role
           )
         `,
@@ -364,7 +366,9 @@ export function LeadInteractionsSheet({
                           <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                             <span className="font-medium">
                               Registrado por:{' '}
-                              {interaction.user?.role || 'Usuário'}
+                              {interaction.user?.name ||
+                                interaction.user?.role ||
+                                'Usuário'}
                             </span>
                           </div>
                         </div>
