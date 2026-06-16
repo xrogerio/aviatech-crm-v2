@@ -122,7 +122,7 @@ export function LeadInteractionsSheet({
 
       if (error) throw error
 
-      setInteractions(data || [])
+      setInteractions((data as any[]) || [])
     } catch (error: any) {
       console.error('Error fetching interactions:', error)
       toast({

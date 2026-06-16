@@ -576,10 +576,12 @@ export const Constants = {
 // Table: interactions
 //   Policy "Admins and Managers manage all interactions" (ALL, PERMISSIVE) roles={public}
 //     USING: is_admin_or_manager()
+//     WITH CHECK: is_admin_or_manager()
 //   Policy "Authenticated users can select interactions" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
 //   Policy "Vendedores manage own interactions" (ALL, PERMISSIVE) roles={public}
 //     USING: (user_id = auth.uid())
+//     WITH CHECK: (user_id = auth.uid())
 // Table: leads
 //   Policy "Admins and Managers manage all leads" (ALL, PERMISSIVE) roles={public}
 //     USING: is_admin_or_manager()
