@@ -34,7 +34,6 @@ export interface Lead {
   email: string
   phone: string
   segment: string
-  size: string
   origin: string
   address?: string
   status: LeadStatus
@@ -90,7 +89,6 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
           email: dbLead.email || '',
           phone: dbLead.telefone || '',
           segment: dbLead.segmento || '',
-          size: dbLead.tamanho || '',
           origin: dbLead.origem || '',
           address: dbLead.endereco || '',
           status: dbLead.status as LeadStatus,
@@ -251,7 +249,6 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
         email: newLead.email,
         telefone: newLead.phone,
         segmento: newLead.segment,
-        tamanho: newLead.size,
         origem: newLead.origin,
         endereco: newLead.address || '',
         status: newLead.status,
@@ -276,7 +273,6 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
           email: data.email || '',
           phone: data.telefone || '',
           segment: data.segmento || '',
-          size: data.tamanho || '',
           origin: data.origem || '',
           address: data.endereco || '',
           status: data.status as LeadStatus,
@@ -314,7 +310,6 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       if (updates.email !== undefined) dbUpdates.email = updates.email
       if (updates.phone !== undefined) dbUpdates.telefone = updates.phone
       if (updates.segment !== undefined) dbUpdates.segmento = updates.segment
-      if (updates.size !== undefined) dbUpdates.tamanho = updates.size
       if (updates.origin !== undefined) dbUpdates.origem = updates.origin
       if (updates.address !== undefined) dbUpdates.endereco = updates.address
       if (updates.status !== undefined) dbUpdates.status = updates.status

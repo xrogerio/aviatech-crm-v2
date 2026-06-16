@@ -100,6 +100,7 @@ export type Database = {
           empresa: string
           endereco: string
           id: string
+          origem: string | null
           segmento: string | null
           status: string
           telefone: string | null
@@ -113,6 +114,7 @@ export type Database = {
           empresa: string
           endereco?: string
           id?: string
+          origem?: string | null
           segmento?: string | null
           status?: string
           telefone?: string | null
@@ -126,6 +128,7 @@ export type Database = {
           empresa?: string
           endereco?: string
           id?: string
+          origem?: string | null
           segmento?: string | null
           status?: string
           telefone?: string | null
@@ -495,6 +498,7 @@ export const Constants = {
 //   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
 //   cnpj: text (not null, default: ''::text)
 //   endereco: text (not null, default: ''::text)
+//   origem: text (nullable)
 // Table: notifications
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
