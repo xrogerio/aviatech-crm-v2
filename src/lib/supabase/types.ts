@@ -11,17 +11,49 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.1'
+    PostgrestVersion: '14.5'
   }
   public: {
     Tables: {
+      companies: {
+        Row: {
+          cnpj: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          razao_social: string | null
+          responsavel_cargo: string | null
+          responsavel_nome: string | null
+          updated_at: string
+        }
+        Insert: {
+          cnpj?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          razao_social?: string | null
+          responsavel_cargo?: string | null
+          responsavel_nome?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cnpj?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          razao_social?: string | null
+          responsavel_cargo?: string | null
+          responsavel_nome?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       interactions: {
         Row: {
           data: string
           descricao: string | null
           id: string
           lead_id: string | null
-          organization_id: string
           tipo: string
           user_id: string | null
         }
@@ -30,7 +62,6 @@ export type Database = {
           descricao?: string | null
           id?: string
           lead_id?: string | null
-          organization_id?: string
           tipo: string
           user_id?: string | null
         }
@@ -39,7 +70,6 @@ export type Database = {
           descricao?: string | null
           id?: string
           lead_id?: string | null
-          organization_id?: string
           tipo?: string
           user_id?: string | null
         }
@@ -49,13 +79,6 @@ export type Database = {
             columns: ['lead_id']
             isOneToOne: false
             referencedRelation: 'leads'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'interactions_organization_id_fkey'
-            columns: ['organization_id']
-            isOneToOne: false
-            referencedRelation: 'organizations'
             referencedColumns: ['id']
           },
           {
@@ -69,45 +92,42 @@ export type Database = {
       }
       leads: {
         Row: {
+          cnpj: string
           contato: string
           created_at: string
           created_by: string | null
           email: string | null
           empresa: string
+          endereco: string
           id: string
-          organization_id: string
-          origem: string | null
           segmento: string | null
           status: string
-          tamanho: string | null
           telefone: string | null
         }
         Insert: {
+          cnpj?: string
           contato: string
           created_at?: string
           created_by?: string | null
           email?: string | null
           empresa: string
+          endereco?: string
           id?: string
-          organization_id?: string
-          origem?: string | null
           segmento?: string | null
           status?: string
-          tamanho?: string | null
           telefone?: string | null
         }
         Update: {
+          cnpj?: string
           contato?: string
           created_at?: string
           created_by?: string | null
           email?: string | null
           empresa?: string
+          endereco?: string
           id?: string
-          organization_id?: string
-          origem?: string | null
           segmento?: string | null
           status?: string
-          tamanho?: string | null
           telefone?: string | null
         }
         Relationships: [
@@ -118,77 +138,7 @@ export type Database = {
             referencedRelation: 'users'
             referencedColumns: ['id']
           },
-          {
-            foreignKeyName: 'leads_organization_id_fkey'
-            columns: ['organization_id']
-            isOneToOne: false
-            referencedRelation: 'organizations'
-            referencedColumns: ['id']
-          },
         ]
-      }
-      notifications: {
-        Row: {
-          created_at: string
-          id: string
-          message: string
-          organization_id: string
-          read: boolean
-          title: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          message: string
-          organization_id?: string
-          read?: boolean
-          title: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          message?: string
-          organization_id?: string
-          read?: boolean
-          title?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'fk_org'
-            columns: ['organization_id']
-            isOneToOne: false
-            referencedRelation: 'organizations'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'fk_user'
-            columns: ['user_id']
-            isOneToOne: false
-            referencedRelation: 'users'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      organizations: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-        }
-        Relationships: []
       }
       proposals: {
         Row: {
@@ -198,8 +148,8 @@ export type Database = {
           id: string
           itens: Json | null
           lead_id: string | null
+          numero: string | null
           observacoes: string | null
-          organization_id: string
           status: string | null
           titulo: string
           validade: string | null
@@ -212,8 +162,8 @@ export type Database = {
           id?: string
           itens?: Json | null
           lead_id?: string | null
+          numero?: string | null
           observacoes?: string | null
-          organization_id?: string
           status?: string | null
           titulo: string
           validade?: string | null
@@ -226,8 +176,8 @@ export type Database = {
           id?: string
           itens?: Json | null
           lead_id?: string | null
+          numero?: string | null
           observacoes?: string | null
-          organization_id?: string
           status?: string | null
           titulo?: string
           validade?: string | null
@@ -248,13 +198,6 @@ export type Database = {
             referencedRelation: 'leads'
             referencedColumns: ['id']
           },
-          {
-            foreignKeyName: 'proposals_organization_id_fkey'
-            columns: ['organization_id']
-            isOneToOne: false
-            referencedRelation: 'organizations'
-            referencedColumns: ['id']
-          },
         ]
       }
       tasks: {
@@ -262,7 +205,6 @@ export type Database = {
           descricao: string | null
           id: string
           lead_id: string | null
-          organization_id: string
           prazo: string | null
           status: string | null
           titulo: string
@@ -272,7 +214,6 @@ export type Database = {
           descricao?: string | null
           id?: string
           lead_id?: string | null
-          organization_id?: string
           prazo?: string | null
           status?: string | null
           titulo: string
@@ -282,7 +223,6 @@ export type Database = {
           descricao?: string | null
           id?: string
           lead_id?: string | null
-          organization_id?: string
           prazo?: string | null
           status?: string | null
           titulo?: string
@@ -297,13 +237,6 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'tasks_organization_id_fkey'
-            columns: ['organization_id']
-            isOneToOne: false
-            referencedRelation: 'organizations'
-            referencedColumns: ['id']
-          },
-          {
             foreignKeyName: 'tasks_user_id_fkey'
             columns: ['user_id']
             isOneToOne: false
@@ -315,34 +248,34 @@ export type Database = {
       users: {
         Row: {
           avatar_url: string | null
+          company_id: string | null
           email: string | null
           id: string
           name: string | null
-          organization_id: string
           role: string
         }
         Insert: {
           avatar_url?: string | null
+          company_id?: string | null
           email?: string | null
           id: string
           name?: string | null
-          organization_id: string
           role?: string
         }
         Update: {
           avatar_url?: string | null
+          company_id?: string | null
           email?: string | null
           id?: string
           name?: string | null
-          organization_id?: string
           role?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'users_organization_id_fkey'
-            columns: ['organization_id']
+            foreignKeyName: 'users_company_id_fkey'
+            columns: ['company_id']
             isOneToOne: false
-            referencedRelation: 'organizations'
+            referencedRelation: 'companies'
             referencedColumns: ['id']
           },
         ]
@@ -352,7 +285,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_my_org_id: { Args: never; Returns: string }
       is_admin_or_manager: { Args: never; Returns: boolean }
     }
     Enums: {
@@ -497,6 +429,15 @@ export const Constants = {
 // --- COLUMN TYPES (actual PostgreSQL types) ---
 // Use this to know the real database type when writing migrations.
 // "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
+// Table: companies
+//   id: uuid (not null, default: gen_random_uuid())
+//   razao_social: text (nullable)
+//   cnpj: text (nullable)
+//   responsavel_nome: text (nullable)
+//   responsavel_cargo: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+//   updated_at: timestamp with time zone (not null, default: now())
+//   logo_url: text (nullable)
 // Table: interactions
 //   id: uuid (not null, default: gen_random_uuid())
 //   lead_id: uuid (nullable)
@@ -504,7 +445,6 @@ export const Constants = {
 //   tipo: text (not null)
 //   descricao: text (nullable)
 //   data: timestamp with time zone (not null, default: timezone('utc'::text, now()))
-//   organization_id: uuid (not null, default: get_my_org_id())
 // Table: leads
 //   id: uuid (not null, default: gen_random_uuid())
 //   empresa: text (not null)
@@ -512,24 +452,11 @@ export const Constants = {
 //   email: text (nullable)
 //   telefone: text (nullable)
 //   segmento: text (nullable)
-//   tamanho: text (nullable)
-//   origem: text (nullable)
 //   status: text (not null, default: 'Novo Lead'::text)
 //   created_by: uuid (nullable, default: auth.uid())
 //   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
-//   organization_id: uuid (not null, default: get_my_org_id())
-// Table: notifications
-//   id: uuid (not null, default: gen_random_uuid())
-//   user_id: uuid (not null)
-//   title: text (not null)
-//   message: text (not null)
-//   read: boolean (not null, default: false)
-//   created_at: timestamp with time zone (not null, default: now())
-//   organization_id: uuid (not null, default: get_my_org_id())
-// Table: organizations
-//   id: uuid (not null, default: gen_random_uuid())
-//   name: text (not null)
-//   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
+//   cnpj: text (not null, default: ''::text)
+//   endereco: text (not null, default: ''::text)
 // Table: proposals
 //   id: uuid (not null, default: gen_random_uuid())
 //   lead_id: uuid (nullable)
@@ -542,7 +469,7 @@ export const Constants = {
 //   observacoes: text (nullable)
 //   validade: timestamp with time zone (nullable)
 //   itens: jsonb (nullable, default: '[]'::jsonb)
-//   organization_id: uuid (not null, default: get_my_org_id())
+//   numero: text (nullable)
 // Table: tasks
 //   id: uuid (not null, default: gen_random_uuid())
 //   lead_id: uuid (nullable)
@@ -551,145 +478,100 @@ export const Constants = {
 //   descricao: text (nullable)
 //   prazo: timestamp with time zone (nullable)
 //   status: text (nullable, default: 'pending'::text)
-//   organization_id: uuid (not null, default: get_my_org_id())
 // Table: users
 //   id: uuid (not null)
 //   role: text (not null, default: 'vendedor'::text)
 //   email: text (nullable)
 //   name: text (nullable)
-//   organization_id: uuid (not null)
 //   avatar_url: text (nullable)
+//   company_id: uuid (nullable)
 
 // --- CONSTRAINTS ---
+// Table: companies
+//   PRIMARY KEY companies_pkey: PRIMARY KEY (id)
 // Table: interactions
 //   FOREIGN KEY interactions_lead_id_fkey: FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
-//   FOREIGN KEY interactions_organization_id_fkey: FOREIGN KEY (organization_id) REFERENCES organizations(id)
 //   PRIMARY KEY interactions_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY interactions_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id)
 // Table: leads
 //   FOREIGN KEY leads_created_by_fkey: FOREIGN KEY (created_by) REFERENCES users(id)
-//   FOREIGN KEY leads_organization_id_fkey: FOREIGN KEY (organization_id) REFERENCES organizations(id)
 //   PRIMARY KEY leads_pkey: PRIMARY KEY (id)
-// Table: notifications
-//   FOREIGN KEY fk_org: FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
-//   FOREIGN KEY fk_user: FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-//   PRIMARY KEY notifications_pkey: PRIMARY KEY (id)
-// Table: organizations
-//   PRIMARY KEY organizations_pkey: PRIMARY KEY (id)
 // Table: proposals
 //   FOREIGN KEY proposals_created_by_fkey: FOREIGN KEY (created_by) REFERENCES users(id)
 //   FOREIGN KEY proposals_lead_id_fkey: FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
-//   FOREIGN KEY proposals_organization_id_fkey: FOREIGN KEY (organization_id) REFERENCES organizations(id)
 //   PRIMARY KEY proposals_pkey: PRIMARY KEY (id)
 // Table: tasks
 //   FOREIGN KEY tasks_lead_id_fkey: FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
-//   FOREIGN KEY tasks_organization_id_fkey: FOREIGN KEY (organization_id) REFERENCES organizations(id)
 //   PRIMARY KEY tasks_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY tasks_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id)
 // Table: users
+//   FOREIGN KEY users_company_id_fkey: FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL
 //   FOREIGN KEY users_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
-//   FOREIGN KEY users_organization_id_fkey: FOREIGN KEY (organization_id) REFERENCES organizations(id)
 //   PRIMARY KEY users_pkey: PRIMARY KEY (id)
 //   CHECK users_role_check: CHECK ((role = ANY (ARRAY['vendedor'::text, 'gerente'::text, 'admin'::text])))
 
 // --- ROW LEVEL SECURITY POLICIES ---
+// Table: companies
+//   Policy "Admins and managers can update companies" (UPDATE, PERMISSIVE) roles={public}
+//     USING: (EXISTS ( SELECT 1    FROM users   WHERE ((users.id = auth.uid()) AND (users.role = ANY (ARRAY['admin'::text, 'gerente'::text])))))
+//   Policy "Admins can insert companies" (INSERT, PERMISSIVE) roles={public}
+//     WITH CHECK: (EXISTS ( SELECT 1    FROM users   WHERE ((users.id = auth.uid()) AND (users.role = 'admin'::text))))
+//   Policy "Anyone can view companies" (SELECT, PERMISSIVE) roles={public}
+//     USING: true
 // Table: interactions
-//   Policy "Manage Interactions Policy" (ALL, PERMISSIVE) roles={public}
-//     USING: (organization_id = get_my_org_id())
-//   Policy "View Interactions Policy" (SELECT, PERMISSIVE) roles={public}
-//     USING: (organization_id = get_my_org_id())
+//   Policy "Admins and Managers manage all interactions" (ALL, PERMISSIVE) roles={public}
+//     USING: is_admin_or_manager()
+//   Policy "Vendedores manage own interactions" (ALL, PERMISSIVE) roles={public}
+//     USING: (user_id = auth.uid())
 // Table: leads
-//   Policy "Delete Leads Policy" (DELETE, PERMISSIVE) roles={public}
-//     USING: ((organization_id = get_my_org_id()) AND (is_admin_or_manager() OR (created_by = auth.uid())))
-//   Policy "Insert Leads Policy" (INSERT, PERMISSIVE) roles={public}
-//     WITH CHECK: ((organization_id = get_my_org_id()) AND (is_admin_or_manager() OR (created_by = auth.uid())))
-//   Policy "Update Leads Policy" (UPDATE, PERMISSIVE) roles={public}
-//     USING: ((organization_id = get_my_org_id()) AND (is_admin_or_manager() OR (created_by = auth.uid())))
-//   Policy "View Leads Policy" (SELECT, PERMISSIVE) roles={public}
-//     USING: ((organization_id = get_my_org_id()) AND (is_admin_or_manager() OR (created_by = auth.uid())))
-// Table: notifications
-//   Policy "Delete Notifications Policy" (DELETE, PERMISSIVE) roles={public}
-//     USING: ((organization_id = get_my_org_id()) AND (user_id = auth.uid()))
-//   Policy "Insert Notifications Policy" (INSERT, PERMISSIVE) roles={public}
-//     WITH CHECK: (organization_id = get_my_org_id())
-//   Policy "Update Notifications Policy" (UPDATE, PERMISSIVE) roles={public}
-//     USING: ((organization_id = get_my_org_id()) AND (user_id = auth.uid()))
-//   Policy "View Notifications Policy" (SELECT, PERMISSIVE) roles={public}
-//     USING: ((organization_id = get_my_org_id()) AND (user_id = auth.uid()))
-// Table: organizations
-//   Policy "Admins and Managers can update organizations" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: ((id = get_my_org_id()) AND is_admin_or_manager())
-//     WITH CHECK: ((id = get_my_org_id()) AND is_admin_or_manager())
-//   Policy "Users can view their own organization" (SELECT, PERMISSIVE) roles={public}
-//     USING: (id = get_my_org_id())
+//   Policy "Admins and Managers manage all leads" (ALL, PERMISSIVE) roles={public}
+//     USING: is_admin_or_manager()
+//   Policy "Vendedores delete own leads" (DELETE, PERMISSIVE) roles={public}
+//     USING: (created_by = auth.uid())
+//   Policy "Vendedores insert own leads" (INSERT, PERMISSIVE) roles={public}
+//     WITH CHECK: (created_by = auth.uid())
+//   Policy "Vendedores update own leads" (UPDATE, PERMISSIVE) roles={public}
+//     USING: (created_by = auth.uid())
+//   Policy "Vendedores view own leads" (SELECT, PERMISSIVE) roles={public}
+//     USING: (created_by = auth.uid())
 // Table: proposals
-//   Policy "Delete Proposals Policy" (DELETE, PERMISSIVE) roles={public}
-//     USING: (organization_id = get_my_org_id())
-//   Policy "Insert Proposals Policy" (INSERT, PERMISSIVE) roles={public}
-//     WITH CHECK: (organization_id = get_my_org_id())
-//   Policy "Update Proposals Policy" (UPDATE, PERMISSIVE) roles={public}
-//     USING: (organization_id = get_my_org_id())
-//   Policy "View Proposals Policy" (SELECT, PERMISSIVE) roles={public}
-//     USING: (organization_id = get_my_org_id())
+//   Policy "Admins and Managers manage all proposals" (ALL, PERMISSIVE) roles={public}
+//     USING: is_admin_or_manager()
+//   Policy "Vendedores manage own proposals" (ALL, PERMISSIVE) roles={public}
+//     USING: (created_by = auth.uid())
 // Table: tasks
-//   Policy "Manage Tasks Policy" (ALL, PERMISSIVE) roles={public}
-//     USING: (organization_id = get_my_org_id())
-//   Policy "View Tasks Policy" (SELECT, PERMISSIVE) roles={public}
-//     USING: (organization_id = get_my_org_id())
+//   Policy "Admins and Managers manage all tasks" (ALL, PERMISSIVE) roles={public}
+//     USING: is_admin_or_manager()
+//   Policy "Vendedores manage own tasks" (ALL, PERMISSIVE) roles={public}
+//     USING: (user_id = auth.uid())
 // Table: users
-//   Policy "Admins and Managers can delete users" (DELETE, PERMISSIVE) roles={public}
-//     USING: ((organization_id = get_my_org_id()) AND is_admin_or_manager())
-//   Policy "Admins and Managers can update users" (UPDATE, PERMISSIVE) roles={public}
-//     USING: ((organization_id = get_my_org_id()) AND is_admin_or_manager())
-//   Policy "Users can update their own profile" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: (id = auth.uid())
-//     WITH CHECK: (id = auth.uid())
-//   Policy "View Users Policy" (SELECT, PERMISSIVE) roles={public}
-//     USING: (organization_id = get_my_org_id())
+//   Policy "Admins and Managers can view all profiles" (SELECT, PERMISSIVE) roles={public}
+//     USING: is_admin_or_manager()
+//   Policy "Admins can delete users" (DELETE, PERMISSIVE) roles={public}
+//     USING: (EXISTS ( SELECT 1    FROM users users_1   WHERE ((users_1.id = auth.uid()) AND (users_1.role = 'admin'::text))))
+//   Policy "Admins can update users" (UPDATE, PERMISSIVE) roles={public}
+//     USING: (EXISTS ( SELECT 1    FROM users users_1   WHERE ((users_1.id = auth.uid()) AND (users_1.role = 'admin'::text))))
+//   Policy "Users can update own profile" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = id)
+//     WITH CHECK: (auth.uid() = id)
+//   Policy "Users can view own profile" (SELECT, PERMISSIVE) roles={public}
+//     USING: (auth.uid() = id)
 
 // --- DATABASE FUNCTIONS ---
-// FUNCTION get_my_org_id()
-//   CREATE OR REPLACE FUNCTION public.get_my_org_id()
-//    RETURNS uuid
-//    LANGUAGE plpgsql
-//    SECURITY DEFINER
-//    SET search_path TO 'public'
-//   AS $function$
-//   DECLARE
-//     org_id UUID;
-//   BEGIN
-//     SELECT organization_id INTO org_id
-//     FROM public.users
-//     WHERE id = auth.uid();
-//     RETURN org_id;
-//   END;
-//   $function$
-//
 // FUNCTION handle_new_user()
 //   CREATE OR REPLACE FUNCTION public.handle_new_user()
 //    RETURNS trigger
 //    LANGUAGE plpgsql
 //    SECURITY DEFINER
 //   AS $function$
-//   DECLARE
-//     org_id UUID;
-//     org_name TEXT;
-//     user_role TEXT;
 //   BEGIN
-//     -- Check if organization_id is provided in metadata (Invitation/Admin creation)
-//     IF NEW.raw_user_meta_data->>'organization_id' IS NOT NULL THEN
-//       org_id := (NEW.raw_user_meta_data->>'organization_id')::UUID;
-//       user_role := COALESCE(NEW.raw_user_meta_data->>'role', 'vendedor');
-//     ELSE
-//       -- Create new organization for new signup
-//       org_name := COALESCE(NEW.raw_user_meta_data->>'company_name', 'Minha Organização');
-//       INSERT INTO public.organizations (name) VALUES (org_name) RETURNING id INTO org_id;
-//       user_role := 'admin'; -- Creator is admin
-//     END IF;
-//
-//     INSERT INTO public.users (id, role, organization_id)
-//     VALUES (NEW.id, user_role, org_id);
-//
+//     INSERT INTO public.users (id, role, email, name)
+//     VALUES (
+//       NEW.id,
+//       'vendedor',
+//       NEW.email,
+//       NEW.raw_user_meta_data->>'name'
+//     );
 //     RETURN NEW;
 //   END;
 //   $function$
@@ -701,30 +583,23 @@ export const Constants = {
 //    SECURITY DEFINER
 //    SET search_path TO 'public'
 //   AS $function$
+//   DECLARE
+//     current_user_id uuid;
 //   BEGIN
-//     -- Check if the current user has admin or manager role
-//     -- Using auth.uid() is the standard way to get current user ID in Supabase
+//     -- Get current user ID safely from the JWT claim
+//     current_user_id := nullif(current_setting('request.jwt.claim.sub', true), '')::uuid;
+//
+//     -- If no user is logged in, return false
+//     IF current_user_id IS NULL THEN
+//       RETURN FALSE;
+//     END IF;
+//
+//     -- Check role in users table
 //     RETURN EXISTS (
-//       SELECT 1 FROM public.users
-//       WHERE id = auth.uid()
+//       SELECT 1 FROM users
+//       WHERE id = current_user_id
 //       AND role IN ('admin', 'gerente')
 //     );
-//   END;
-//   $function$
-//
-// FUNCTION set_proposal_organization_id()
-//   CREATE OR REPLACE FUNCTION public.set_proposal_organization_id()
-//    RETURNS trigger
-//    LANGUAGE plpgsql
-//    SECURITY DEFINER
-//   AS $function$
-//   BEGIN
-//     IF NEW.organization_id IS NULL THEN
-//       SELECT organization_id INTO NEW.organization_id
-//       FROM public.leads
-//       WHERE id = NEW.lead_id;
-//     END IF;
-//     RETURN NEW;
 //   END;
 //   $function$
 //
@@ -743,7 +618,3 @@ export const Constants = {
 //   END;
 //   $function$
 //
-
-// --- TRIGGERS ---
-// Table: proposals
-//   set_proposal_organization_id_trigger: CREATE TRIGGER set_proposal_organization_id_trigger BEFORE INSERT ON public.proposals FOR EACH ROW EXECUTE FUNCTION set_proposal_organization_id()

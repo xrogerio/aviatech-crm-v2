@@ -52,7 +52,7 @@ export function AppSidebar() {
     {
       icon: CheckSquare,
       label: 'Tarefas',
-      path: '/tasks',
+      path: '/tarefas',
       roles: ['admin', 'gerente', 'vendedor'],
     },
     {
@@ -64,7 +64,7 @@ export function AppSidebar() {
     {
       icon: FileText,
       label: 'Propostas',
-      path: '/proposals',
+      path: '/propostas',
       roles: ['admin', 'gerente', 'vendedor'],
     },
   ]
@@ -74,7 +74,7 @@ export function AppSidebar() {
     menuItems.push({
       icon: ShieldCheck,
       label: 'Usuários',
-      path: '/users',
+      path: '/usuarios',
       roles: ['admin'],
     })
   }
