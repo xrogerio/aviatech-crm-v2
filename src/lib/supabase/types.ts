@@ -518,14 +518,20 @@ export const Constants = {
 //     WITH CHECK: (EXISTS ( SELECT 1    FROM users   WHERE ((users.id = auth.uid()) AND (users.role = 'admin'::text))))
 //   Policy "Anyone can view companies" (SELECT, PERMISSIVE) roles={public}
 //     USING: true
+//   Policy "Authenticated users can select companies" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 // Table: interactions
 //   Policy "Admins and Managers manage all interactions" (ALL, PERMISSIVE) roles={public}
 //     USING: is_admin_or_manager()
+//   Policy "Authenticated users can select interactions" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 //   Policy "Vendedores manage own interactions" (ALL, PERMISSIVE) roles={public}
 //     USING: (user_id = auth.uid())
 // Table: leads
 //   Policy "Admins and Managers manage all leads" (ALL, PERMISSIVE) roles={public}
 //     USING: is_admin_or_manager()
+//   Policy "Authenticated users can select leads" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 //   Policy "Vendedores delete own leads" (DELETE, PERMISSIVE) roles={public}
 //     USING: (created_by = auth.uid())
 //   Policy "Vendedores insert own leads" (INSERT, PERMISSIVE) roles={public}
@@ -537,11 +543,15 @@ export const Constants = {
 // Table: proposals
 //   Policy "Admins and Managers manage all proposals" (ALL, PERMISSIVE) roles={public}
 //     USING: is_admin_or_manager()
+//   Policy "Authenticated users can select proposals" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 //   Policy "Vendedores manage own proposals" (ALL, PERMISSIVE) roles={public}
 //     USING: (created_by = auth.uid())
 // Table: tasks
 //   Policy "Admins and Managers manage all tasks" (ALL, PERMISSIVE) roles={public}
 //     USING: is_admin_or_manager()
+//   Policy "Authenticated users can select tasks" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 //   Policy "Vendedores manage own tasks" (ALL, PERMISSIVE) roles={public}
 //     USING: (user_id = auth.uid())
 // Table: users
@@ -551,6 +561,8 @@ export const Constants = {
 //     USING: (EXISTS ( SELECT 1    FROM users users_1   WHERE ((users_1.id = auth.uid()) AND (users_1.role = 'admin'::text))))
 //   Policy "Admins can update users" (UPDATE, PERMISSIVE) roles={public}
 //     USING: (EXISTS ( SELECT 1    FROM users users_1   WHERE ((users_1.id = auth.uid()) AND (users_1.role = 'admin'::text))))
+//   Policy "Authenticated users can select users" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 //   Policy "Users can update own profile" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = id)
 //     WITH CHECK: (auth.uid() = id)

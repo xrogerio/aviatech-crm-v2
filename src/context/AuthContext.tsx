@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('role, organization_id, name, avatar_url, organizations(name)')
+        .select('role, company_id, name, avatar_url, companies(razao_social)')
         .eq('id', userId)
         .single()
 
@@ -62,8 +62,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return null
       }
 
-      setOrganizationId(data?.organization_id)
-      setOrganizationName((data?.organizations as any)?.name || null)
+      setOrganizationId(data?.company_id)
+      setOrganizationName((data?.companies as any)?.razao_social || null)
       setName(data?.name || null)
       setAvatarUrl((data as any)?.avatar_url || null)
       return data?.role as 'vendedor' | 'gerente' | 'admin'
@@ -136,7 +136,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'organizations',
+          table: 'companies',
           filter: `id=eq.${organizationId}`,
         },
         () => {
