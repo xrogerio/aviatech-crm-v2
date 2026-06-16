@@ -5,7 +5,6 @@ import * as z from 'zod'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
-  CalendarIcon,
   MessageSquare,
   Phone,
   Mail,
@@ -122,7 +121,7 @@ export function LeadInteractionsSheet({
 
       if (error) throw error
 
-      setInteractions((data as any[]) || [])
+      setInteractions((data as unknown as Interaction[]) || [])
     } catch (error: any) {
       console.error('Error fetching interactions:', error)
       toast({
@@ -352,12 +351,12 @@ export function LeadInteractionsSheet({
                             <Badge variant="outline" className="font-medium">
                               {interaction.tipo}
                             </Badge>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-muted-foreground capitalize">
                               {format(
                                 new Date(interaction.data),
                                 "dd 'de' MMM, yyyy",
                                 { locale: ptBR },
-                              )}
+                              ).replace('.', '')}
                             </span>
                           </div>
                           <p className="text-sm mt-1 whitespace-pre-wrap text-foreground/90">
