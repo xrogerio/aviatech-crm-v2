@@ -1,24 +1,14 @@
 import { supabase } from '@/lib/supabase/client'
+import { Database } from '@/lib/supabase/types'
 
-export interface Interaction {
-  id: string
-  lead_id: string | null
-  user_id: string | null
-  tipo: string
-  descricao: string | null
-  data: string
-  user?: {
-    name: string | null
-    role: string | null
-  } | null
-}
-
-export interface CreateInteractionDTO {
-  lead_id: string
-  tipo: string
-  descricao: string
-  data: string
-}
+export type Interaction =
+  Database['public']['Tables']['interactions']['Row'] & {
+    user?: { name: string | null; role: string } | null
+  }
+export type CreateInteractionDTO =
+  Database['public']['Tables']['interactions']['Insert']
+export type UpdateInteractionDTO =
+  Database['public']['Tables']['interactions']['Update']
 
 export const interactionsService = {
   async getInteractionsByLead(leadId: string): Promise<Interaction[]> {
@@ -29,27 +19,40 @@ export const interactionsService = {
       .order('data', { ascending: false })
 
     if (error) throw error
-
-    // Transform single user object back to the expected type
-    return (data || []).map((item: any) => ({
-      ...item,
-      user: Array.isArray(item.user) ? item.user[0] : item.user,
-    })) as Interaction[]
+    return data as unknown as Interaction[]
   },
 
-  async createInteraction(interaction: CreateInteractionDTO) {
+  async createInteraction(
+    interaction: CreateInteractionDTO,
+  ): Promise<Interaction> {
     const { data, error } = await supabase
       .from('interactions')
-      .insert({
-        lead_id: interaction.lead_id,
-        tipo: interaction.tipo,
-        descricao: interaction.descricao,
-        data: interaction.data,
-      })
-      .select()
+      .insert(interaction)
+      .select('*, user:users(name, role)')
       .single()
 
     if (error) throw error
-    return data
+    return data as unknown as Interaction
+  },
+
+  async updateInteraction(
+    id: string,
+    updates: UpdateInteractionDTO,
+  ): Promise<Interaction> {
+    const { data, error } = await supabase
+      .from('interactions')
+      .update(updates)
+      .eq('id', id)
+      .select('*, user:users(name, role)')
+      .single()
+
+    if (error) throw error
+    return data as unknown as Interaction
+  },
+
+  async deleteInteraction(id: string): Promise<void> {
+    const { error } = await supabase.from('interactions').delete().eq('id', id)
+
+    if (error) throw error
   },
 }

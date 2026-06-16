@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Lead } from '@/context/LeadsContext'
 import { Task, tasksService } from '@/services/tasksService'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2, Plus, CheckCircle2, Circle, AlertCircle } from 'lucide-react'
+import { Loader2, Plus, AlertCircle, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,6 +17,16 @@ import { ptBR } from 'date-fns/locale'
 import { TaskForm } from '@/components/tasks/TaskForm'
 import { cn } from '@/lib/utils'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 interface LeadTasksSectionProps {
   lead: Lead | null
@@ -26,6 +36,8 @@ export function LeadTasksSection({ lead }: LeadTasksSectionProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
   const { toast } = useToast()
 
   const fetchTasks = async () => {
@@ -52,28 +64,51 @@ export function LeadTasksSection({ lead }: LeadTasksSectionProps) {
     }
   }, [lead])
 
-  const handleCreateTask = async (taskData: any) => {
+  const handleSaveTask = async (taskData: any) => {
     try {
-      await tasksService.createTask(taskData)
-      toast({
-        title: 'Tarefa criada',
-        description: 'A tarefa foi adicionada com sucesso.',
-      })
+      if (editingTask) {
+        await tasksService.updateTask(editingTask.id, taskData)
+        toast({ title: 'Tarefa atualizada com sucesso' })
+      } else {
+        await tasksService.createTask(taskData)
+        toast({ title: 'Tarefa criada com sucesso' })
+      }
       setIsDialogOpen(false)
+      setEditingTask(null)
       fetchTasks()
     } catch (error: any) {
       toast({
-        title: 'Erro ao criar tarefa',
+        title: 'Erro ao salvar tarefa',
         description: error.message,
         variant: 'destructive',
       })
     }
   }
 
+  const handleDeleteTask = async () => {
+    if (!taskToDelete) return
+    try {
+      await tasksService.deleteTask(taskToDelete.id)
+      toast({ title: 'Tarefa excluída com sucesso' })
+      setTaskToDelete(null)
+      fetchTasks()
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao excluir tarefa',
+        description: error.message,
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task)
+    setIsDialogOpen(true)
+  }
+
   const handleToggleComplete = async (task: Task) => {
     const newStatus = task.status === 'Concluída' ? 'Pendente' : 'Concluída'
 
-    // Optimistic update
     setTasks((prev) =>
       prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
     )
@@ -85,8 +120,8 @@ export function LeadTasksSection({ lead }: LeadTasksSectionProps) {
           newStatus === 'Concluída' ? 'Tarefa concluída' : 'Tarefa reaberta',
         duration: 2000,
       })
+      fetchTasks()
     } catch (error: any) {
-      // Revert on error
       fetchTasks()
       toast({
         title: 'Erro ao atualizar tarefa',
@@ -101,24 +136,52 @@ export function LeadTasksSection({ lead }: LeadTasksSectionProps) {
   const pendingTasks = tasks.filter((t) => t.status !== 'Concluída')
   const completedTasks = tasks.filter((t) => t.status === 'Concluída')
 
+  const defaultTaskValues = editingTask
+    ? {
+        titulo: editingTask.titulo,
+        descricao: editingTask.descricao || '',
+        prazo: editingTask.prazo ? new Date(editingTask.prazo) : new Date(),
+        status: editingTask.status || 'Pendente',
+        leadId: editingTask.lead_id || lead.id,
+      }
+    : undefined
+
   return (
     <div className="flex flex-col h-full space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-sm">Tarefas de Follow-up</h3>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open)
+            if (!open) setEditingTask(null)
+          }}
+        >
           <DialogTrigger asChild>
-            <Button size="sm" className="gap-2">
+            <Button
+              size="sm"
+              className="gap-2"
+              onClick={() => setEditingTask(null)}
+            >
               <Plus className="h-4 w-4" /> Nova Tarefa
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Nova Tarefa para {lead.company}</DialogTitle>
+              <DialogTitle>
+                {editingTask
+                  ? 'Editar Tarefa'
+                  : `Nova Tarefa para ${lead.company}`}
+              </DialogTitle>
             </DialogHeader>
             <TaskForm
               leadId={lead.id}
-              onSubmit={handleCreateTask}
-              onCancel={() => setIsDialogOpen(false)}
+              onSubmit={handleSaveTask}
+              onCancel={() => {
+                setIsDialogOpen(false)
+                setEditingTask(null)
+              }}
+              defaultValues={defaultTaskValues}
             />
           </DialogContent>
         </Dialog>
@@ -135,7 +198,6 @@ export function LeadTasksSection({ lead }: LeadTasksSectionProps) {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Pending Tasks */}
             {pendingTasks.length > 0 && (
               <div className="space-y-2">
                 <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -152,49 +214,73 @@ export function LeadTasksSection({ lead }: LeadTasksSectionProps) {
                       <div
                         key={task.id}
                         className={cn(
-                          'flex items-start gap-3 p-3 rounded-lg border bg-card transition-all hover:shadow-sm',
+                          'group flex items-start justify-between gap-3 p-3 rounded-lg border bg-card transition-all hover:shadow-sm',
                           isOverdue &&
                             'border-red-200 bg-red-50/50 dark:bg-red-900/10',
                         )}
                       >
-                        <Checkbox
-                          checked={false}
-                          onCheckedChange={() => handleToggleComplete(task)}
-                          className="mt-1"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span
-                              className={cn(
-                                'font-medium text-sm truncate',
-                                isOverdue && 'text-red-700 dark:text-red-400',
-                              )}
-                            >
-                              {task.titulo}
-                            </span>
-                            {isOverdue && (
-                              <span className="flex items-center text-[10px] text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-300 px-1.5 py-0.5 rounded-full font-medium">
-                                <AlertCircle className="w-3 h-3 mr-1" />
-                                Atrasada
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <Checkbox
+                            checked={false}
+                            onCheckedChange={() => handleToggleComplete(task)}
+                            className="mt-1"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span
+                                className={cn(
+                                  'font-medium text-sm truncate',
+                                  isOverdue && 'text-red-700 dark:text-red-400',
+                                )}
+                              >
+                                {task.titulo}
                               </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                            {task.descricao || 'Sem descrição'}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span
-                              className={cn(
-                                isOverdue && 'text-red-600 font-medium',
+                              {isOverdue && (
+                                <span className="flex items-center text-[10px] text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-300 px-1.5 py-0.5 rounded-full font-medium">
+                                  <AlertCircle className="w-3 h-3 mr-1" />
+                                  Atrasada
+                                </span>
                               )}
-                            >
-                              {task.prazo
-                                ? format(new Date(task.prazo), "dd 'de' MMM", {
-                                    locale: ptBR,
-                                  })
-                                : 'Sem prazo'}
-                            </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                              {task.descricao || 'Sem descrição'}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span
+                                className={cn(
+                                  isOverdue && 'text-red-600 font-medium',
+                                )}
+                              >
+                                {task.prazo
+                                  ? format(
+                                      new Date(task.prazo),
+                                      "dd 'de' MMM",
+                                      {
+                                        locale: ptBR,
+                                      },
+                                    )
+                                  : 'Sem prazo'}
+                              </span>
+                            </div>
                           </div>
+                        </div>
+                        <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => handleEditTask(task)}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setTaskToDelete(task)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
                     )
@@ -203,26 +289,46 @@ export function LeadTasksSection({ lead }: LeadTasksSectionProps) {
               </div>
             )}
 
-            {/* Completed Tasks */}
             {completedTasks.length > 0 && (
               <div className="space-y-2">
                 <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Concluídas
                 </h4>
-                <div className="space-y-2 opacity-60">
+                <div className="space-y-2">
                   {completedTasks.map((task) => (
                     <div
                       key={task.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50"
+                      className="group flex items-start justify-between gap-3 p-3 rounded-lg border bg-muted/50 transition-all hover:shadow-sm"
                     >
-                      <Checkbox
-                        checked={true}
-                        onCheckedChange={() => handleToggleComplete(task)}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <span className="font-medium text-sm line-through text-muted-foreground">
-                          {task.titulo}
-                        </span>
+                      <div className="flex items-start gap-3 flex-1 min-w-0 opacity-60">
+                        <Checkbox
+                          checked={true}
+                          onCheckedChange={() => handleToggleComplete(task)}
+                          className="mt-1"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium text-sm line-through text-muted-foreground">
+                            {task.titulo}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => handleEditTask(task)}
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => setTaskToDelete(task)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -232,6 +338,30 @@ export function LeadTasksSection({ lead }: LeadTasksSectionProps) {
           </div>
         )}
       </ScrollArea>
+
+      <AlertDialog
+        open={!!taskToDelete}
+        onOpenChange={(open) => !open && setTaskToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Tarefa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser
+              desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTask}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

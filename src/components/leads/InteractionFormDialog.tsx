@@ -29,8 +29,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { interactionsService } from '@/services/interactionsService'
+import {
+  interactionsService,
+  Interaction,
+} from '@/services/interactionsService'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/context/AuthContext'
 
 const formSchema = z.object({
   tipo: z.string().min(1, 'Selecione um tipo'),
@@ -42,6 +46,7 @@ type FormValues = z.infer<typeof formSchema>
 
 interface InteractionFormDialogProps {
   leadId: string
+  interaction?: Interaction | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
@@ -49,11 +54,13 @@ interface InteractionFormDialogProps {
 
 export function InteractionFormDialog({
   leadId,
+  interaction,
   open,
   onOpenChange,
   onSuccess,
 }: InteractionFormDialogProps) {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<FormValues>({
@@ -67,30 +74,48 @@ export function InteractionFormDialog({
 
   useEffect(() => {
     if (open) {
-      form.reset({
-        tipo: '',
-        descricao: '',
-        data: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-      })
+      if (interaction) {
+        form.reset({
+          tipo: interaction.tipo,
+          descricao: interaction.descricao || '',
+          data: format(new Date(interaction.data), "yyyy-MM-dd'T'HH:mm"),
+        })
+      } else {
+        form.reset({
+          tipo: '',
+          descricao: '',
+          data: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+        })
+      }
     }
-  }, [open, form])
+  }, [open, form, interaction])
 
   async function onSubmit(values: FormValues) {
     try {
       setIsSubmitting(true)
-      await interactionsService.createInteraction({
-        lead_id: leadId,
-        tipo: values.tipo,
-        descricao: values.descricao,
-        data: new Date(values.data).toISOString(),
-      })
-      toast({ title: 'Interação registrada com sucesso' })
+      if (interaction) {
+        await interactionsService.updateInteraction(interaction.id, {
+          tipo: values.tipo,
+          descricao: values.descricao,
+          data: new Date(values.data).toISOString(),
+        })
+        toast({ title: 'Interação atualizada com sucesso' })
+      } else {
+        await interactionsService.createInteraction({
+          lead_id: leadId,
+          tipo: values.tipo,
+          descricao: values.descricao,
+          data: new Date(values.data).toISOString(),
+          user_id: user?.id,
+        })
+        toast({ title: 'Interação registrada com sucesso' })
+      }
       onSuccess()
       onOpenChange(false)
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Erro ao registrar interação',
+        title: 'Erro ao salvar interação',
         description: 'Tente novamente.',
         variant: 'destructive',
       })
@@ -103,7 +128,9 @@ export function InteractionFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Nova Interação</DialogTitle>
+          <DialogTitle>
+            {interaction ? 'Editar Interação' : 'Nova Interação'}
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -116,6 +143,7 @@ export function InteractionFormDialog({
                   <FormLabel>Tipo</FormLabel>
                   <Select
                     onValueChange={field.onChange}
+                    value={field.value}
                     defaultValue={field.value}
                   >
                     <FormControl>

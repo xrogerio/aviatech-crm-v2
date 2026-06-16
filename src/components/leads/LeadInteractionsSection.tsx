@@ -8,6 +8,8 @@ import {
   Mail,
   MessageCircle,
   FileText,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -19,6 +21,17 @@ import {
   interactionsService,
 } from '@/services/interactionsService'
 import { Lead } from '@/context/LeadsContext'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useToast } from '@/hooks/use-toast'
 
 interface LeadInteractionsSectionProps {
   lead: Lead | null
@@ -45,6 +58,11 @@ export function LeadInteractionsSection({
   const [interactions, setInteractions] = useState<Interaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingInteraction, setEditingInteraction] =
+    useState<Interaction | null>(null)
+  const [interactionToDelete, setInteractionToDelete] =
+    useState<Interaction | null>(null)
+  const { toast } = useToast()
 
   const loadInteractions = useCallback(async () => {
     if (!lead?.id) return
@@ -63,19 +81,47 @@ export function LeadInteractionsSection({
     loadInteractions()
   }, [loadInteractions])
 
+  const handleEdit = (interaction: Interaction) => {
+    setEditingInteraction(interaction)
+    setIsDialogOpen(true)
+  }
+
+  const handleDelete = async () => {
+    if (!interactionToDelete) return
+    try {
+      await interactionsService.deleteInteraction(interactionToDelete.id)
+      toast({ title: 'Interação excluída com sucesso' })
+      setInteractionToDelete(null)
+      loadInteractions()
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao excluir interação',
+        description: error.message,
+        variant: 'destructive',
+      })
+    }
+  }
+
   if (!lead) return null
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex items-center justify-between mb-4 mt-2">
-        <h3 className="text-lg font-medium">Interações</h3>
-        <Button onClick={() => setIsDialogOpen(true)} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
+    <div className="flex flex-col h-full space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-sm">Interações</h3>
+        <Button
+          onClick={() => {
+            setEditingInteraction(null)
+            setIsDialogOpen(true)
+          }}
+          size="sm"
+          className="gap-2"
+        >
+          <Plus className="h-4 w-4" />
           Nova Interação
         </Button>
       </div>
 
-      <ScrollArea className="flex-1 -mx-4 px-4">
+      <ScrollArea className="flex-1 -mx-4 px-4 h-[500px]">
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
@@ -83,19 +129,16 @@ export function LeadInteractionsSection({
             ))}
           </div>
         ) : interactions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center p-8 text-muted-foreground border rounded-lg bg-muted/20">
-            <MessageSquare className="h-8 w-8 mb-4 opacity-50" />
-            <p className="text-sm font-medium">Nenhuma interação registrada.</p>
-            <p className="text-xs mt-1">
-              Registre a primeira interação com este lead.
-            </p>
+          <div className="text-center py-10 text-muted-foreground bg-muted/20 rounded-lg border border-dashed">
+            <MessageSquare className="h-8 w-8 mx-auto mb-4 opacity-50" />
+            <p>Nenhuma interação registrada.</p>
           </div>
         ) : (
           <div className="space-y-4 pb-4">
             {interactions.map((interaction) => (
               <div
                 key={interaction.id}
-                className="flex gap-4 p-4 rounded-lg border bg-card text-card-foreground shadow-sm"
+                className="group flex gap-3 p-3 rounded-lg border bg-card transition-all hover:shadow-sm"
               >
                 <div className="mt-1 bg-muted p-2 rounded-full h-fit flex-shrink-0">
                   {getInteractionIcon(interaction.tipo)}
@@ -129,6 +172,24 @@ export function LeadInteractionsSection({
                     </p>
                   )}
                 </div>
+                <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => handleEdit(interaction)}
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => setInteractionToDelete(interaction)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -137,10 +198,38 @@ export function LeadInteractionsSection({
 
       <InteractionFormDialog
         leadId={lead.id}
+        interaction={editingInteraction}
         open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open)
+          if (!open) setEditingInteraction(null)
+        }}
         onSuccess={loadInteractions}
       />
+
+      <AlertDialog
+        open={!!interactionToDelete}
+        onOpenChange={(open) => !open && setInteractionToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Interação</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta interação? Esta ação não pode
+              ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -1,47 +1,12 @@
 import { supabase } from '@/lib/supabase/client'
+import { Database } from '@/lib/supabase/types'
 
-export interface Task {
-  id: string
-  titulo: string
-  descricao: string | null
-  prazo: string | null
-  status: string | null
-  lead_id: string | null
-  user_id: string | null
-  leads?: {
-    empresa: string
-    contato: string
-  } | null
-}
-
-export type CreateTaskDTO = Omit<Task, 'id' | 'leads'>
-export type UpdateTaskDTO = Partial<Omit<Task, 'id' | 'leads'>>
+export type Task = Database['public']['Tables']['tasks']['Row']
+export type CreateTaskDTO = Database['public']['Tables']['tasks']['Insert']
+export type UpdateTaskDTO = Database['public']['Tables']['tasks']['Update']
 
 export const tasksService = {
-  async getTasks(userId?: string) {
-    let query = supabase
-      .from('tasks')
-      .select(
-        `
-        *,
-        leads (
-          empresa,
-          contato
-        )
-      `,
-      )
-      .order('prazo', { ascending: true })
-
-    if (userId) {
-      query = query.eq('user_id', userId)
-    }
-
-    const { data, error } = await query
-    if (error) throw error
-    return data as Task[]
-  },
-
-  async getTasksByLead(leadId: string) {
+  async getTasksByLead(leadId: string): Promise<Task[]> {
     const { data, error } = await supabase
       .from('tasks')
       .select('*')
@@ -52,18 +17,18 @@ export const tasksService = {
     return data as Task[]
   },
 
-  async createTask(task: CreateTaskDTO) {
+  async createTask(task: CreateTaskDTO): Promise<Task> {
     const { data, error } = await supabase
       .from('tasks')
-      .insert([task])
+      .insert(task)
       .select()
       .single()
 
     if (error) throw error
-    return data
+    return data as Task
   },
 
-  async updateTask(id: string, updates: UpdateTaskDTO) {
+  async updateTask(id: string, updates: UpdateTaskDTO): Promise<Task> {
     const { data, error } = await supabase
       .from('tasks')
       .update(updates)
@@ -72,10 +37,10 @@ export const tasksService = {
       .single()
 
     if (error) throw error
-    return data
+    return data as Task
   },
 
-  async deleteTask(id: string) {
+  async deleteTask(id: string): Promise<void> {
     const { error } = await supabase.from('tasks').delete().eq('id', id)
 
     if (error) throw error
