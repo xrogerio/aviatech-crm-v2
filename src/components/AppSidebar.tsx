@@ -14,6 +14,7 @@ import {
 import {
   LayoutDashboard,
   Users,
+  Folder,
   KanbanSquare,
   CheckSquare,
   FileText,
@@ -41,6 +42,12 @@ export function AppSidebar() {
       icon: Users,
       label: 'Leads',
       path: '/leads',
+      roles: ['admin', 'gerente', 'vendedor'],
+    },
+    {
+      icon: Folder,
+      label: 'Projetos',
+      path: '/projetos',
       roles: ['admin', 'gerente', 'vendedor'],
     },
     {

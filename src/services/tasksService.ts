@@ -3,11 +3,27 @@ import { Database } from '@/lib/supabase/types'
 
 export type Task = Database['public']['Tables']['tasks']['Row'] & {
   leads?: { empresa: string } | null
+  project_id?: string | null
 }
-export type CreateTaskDTO = Database['public']['Tables']['tasks']['Insert']
-export type UpdateTaskDTO = Database['public']['Tables']['tasks']['Update']
+export type CreateTaskDTO = Database['public']['Tables']['tasks']['Insert'] & {
+  project_id?: string | null
+}
+export type UpdateTaskDTO = Database['public']['Tables']['tasks']['Update'] & {
+  project_id?: string | null
+}
 
 export const tasksService = {
+  async getTasksByProject(projectId: string): Promise<Task[]> {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*, leads(empresa)')
+      .eq('project_id', projectId)
+      .order('prazo', { ascending: true })
+
+    if (error) throw error
+    return data as Task[]
+  },
+
   async getTasks(userId?: string): Promise<Task[]> {
     let query = supabase
       .from('tasks')

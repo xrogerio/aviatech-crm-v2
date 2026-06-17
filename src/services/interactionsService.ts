@@ -4,11 +4,16 @@ import { Database } from '@/lib/supabase/types'
 export type Interaction =
   Database['public']['Tables']['interactions']['Row'] & {
     user?: { name: string | null; role: string } | null
+    project_id?: string | null
   }
 export type CreateInteractionDTO =
-  Database['public']['Tables']['interactions']['Insert']
+  Database['public']['Tables']['interactions']['Insert'] & {
+    project_id?: string | null
+  }
 export type UpdateInteractionDTO =
-  Database['public']['Tables']['interactions']['Update']
+  Database['public']['Tables']['interactions']['Update'] & {
+    project_id?: string | null
+  }
 
 export const interactionsService = {
   async getInteractionsByLead(leadId: string): Promise<Interaction[]> {

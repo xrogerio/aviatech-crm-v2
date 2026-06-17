@@ -18,6 +18,7 @@ export interface Proposal {
   observacoes?: string
   validade?: string
   itens?: ProposalItem[]
+  project_id?: string | null
   leads?: {
     empresa: string
     contato: string
