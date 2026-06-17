@@ -14,9 +14,21 @@ import {
   Filter,
   CalendarIcon,
   User,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -53,6 +65,8 @@ export default function Activities() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('')
@@ -84,22 +98,52 @@ export default function Activities() {
     fetchTasks()
   }, [user, role])
 
-  const handleCreateTask = async (taskData: any) => {
+  const handleSaveTask = async (taskData: any) => {
     try {
-      await tasksService.createTask(taskData)
-      toast({
-        title: 'Tarefa criada',
-        description: 'Nova tarefa adicionada com sucesso.',
-      })
+      if (editingTask) {
+        await tasksService.updateTask(editingTask.id, taskData)
+        toast({
+          title: 'Tarefa atualizada',
+          description: 'A tarefa foi atualizada com sucesso.',
+        })
+      } else {
+        await tasksService.createTask(taskData)
+        toast({
+          title: 'Tarefa criada',
+          description: 'Nova tarefa adicionada com sucesso.',
+        })
+      }
       setIsDialogOpen(false)
+      setEditingTask(null)
       fetchTasks()
     } catch (error: any) {
       toast({
-        title: 'Erro ao criar tarefa',
+        title: 'Erro ao salvar tarefa',
         description: error.message,
         variant: 'destructive',
       })
     }
+  }
+
+  const handleDeleteTask = async () => {
+    if (!taskToDelete) return
+    try {
+      await tasksService.deleteTask(taskToDelete.id)
+      toast({ title: 'Tarefa excluída com sucesso' })
+      setTaskToDelete(null)
+      fetchTasks()
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao excluir tarefa',
+        description: error.message,
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task)
+    setIsDialogOpen(true)
   }
 
   const handleToggleComplete = async (task: Task) => {
@@ -172,19 +216,46 @@ export default function Activities() {
             Organize suas atividades e não perca prazos.
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open)
+            if (!open) setEditingTask(null)
+          }}
+        >
           <DialogTrigger asChild>
-            <Button className="rounded-full shadow-lg">
+            <Button
+              className="rounded-full shadow-lg"
+              onClick={() => setEditingTask(null)}
+            >
               <Plus className="mr-2 h-4 w-4" /> Nova Tarefa
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Nova Tarefa</DialogTitle>
+              <DialogTitle>
+                {editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}
+              </DialogTitle>
             </DialogHeader>
             <TaskForm
-              onSubmit={handleCreateTask}
-              onCancel={() => setIsDialogOpen(false)}
+              onSubmit={handleSaveTask}
+              onCancel={() => {
+                setIsDialogOpen(false)
+                setEditingTask(null)
+              }}
+              defaultValues={
+                editingTask
+                  ? {
+                      titulo: editingTask.titulo,
+                      descricao: editingTask.descricao || '',
+                      prazo: editingTask.prazo
+                        ? new Date(editingTask.prazo)
+                        : new Date(),
+                      status: editingTask.status || 'Pendente',
+                      leadId: editingTask.lead_id || '',
+                    }
+                  : undefined
+              }
             />
           </DialogContent>
         </Dialog>
@@ -379,6 +450,25 @@ export default function Activities() {
                           </p>
                         )}
                       </div>
+
+                      <div className="flex flex-col md:flex-row gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleEditTask(task)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => setTaskToDelete(task)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   )
                 })}
@@ -427,6 +517,25 @@ export default function Activities() {
                         </span>
                       </div>
                     </div>
+
+                    <div className="flex flex-col md:flex-row gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleEditTask(task)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => setTaskToDelete(task)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -434,6 +543,30 @@ export default function Activities() {
           </ScrollArea>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog
+        open={!!taskToDelete}
+        onOpenChange={(open) => !open && setTaskToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Tarefa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser
+              desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTask}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
