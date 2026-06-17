@@ -109,7 +109,7 @@ export function LeadsTable({
                       variant="ghost"
                       className="h-8 w-8 p-0"
                       onClick={() => onViewHistory(lead)}
-                      title="Ver histórico de interações"
+                      title="Ver histórico de interações e tarefas"
                     >
                       <span className="sr-only">Ver histórico</span>
                       <Eye className="h-4 w-4" />
