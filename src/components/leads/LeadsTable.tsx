@@ -15,22 +15,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Pencil, Trash2, Eye } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import { Lead } from '@/context/LeadsContext'
 
 interface LeadsTableProps {
   leads: Lead[]
   onEdit: (lead: Lead) => void
   onDelete: (id: string) => void
-  onViewHistory: (lead: Lead) => void
 }
 
-export function LeadsTable({
-  leads,
-  onEdit,
-  onDelete,
-  onViewHistory,
-}: LeadsTableProps) {
+export function LeadsTable({ leads, onEdit, onDelete }: LeadsTableProps) {
   return (
     <div className="rounded-md border bg-card">
       <Table>
@@ -63,15 +57,6 @@ export function LeadsTable({
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => onViewHistory(lead)}
-                      title="Ver histórico de interações e tarefas"
-                    >
-                      <span className="sr-only">Ver histórico</span>
-                      <Eye className="h-4 w-4" />
-                    </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">

@@ -27,6 +27,17 @@ export const interactionsService = {
     return data as unknown as Interaction[]
   },
 
+  async getInteractionsByProject(projectId: string): Promise<Interaction[]> {
+    const { data, error } = await supabase
+      .from('interactions')
+      .select('*, user:users(name, role)')
+      .eq('project_id', projectId)
+      .order('data', { ascending: false })
+
+    if (error) throw error
+    return data as unknown as Interaction[]
+  },
+
   async createInteraction(
     interaction: CreateInteractionDTO,
   ): Promise<Interaction> {

@@ -6,14 +6,14 @@ import { useToast } from '@/hooks/use-toast'
 import { Project, projectsService } from '@/services/projectsService'
 import { ProjectFormDialog } from '@/components/projects/ProjectFormDialog'
 import { ProjectsTable } from '@/components/projects/ProjectsTable'
-import { ProjectTimelineSheet } from '@/components/projects/ProjectTimelineSheet'
+import { ProjectHistorySheet } from '@/components/projects/ProjectHistorySheet'
 
 export default function Projects() {
   const { toast } = useToast()
   const [projects, setProjects] = useState<Project[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isTimelineOpen, setIsTimelineOpen] = useState(false)
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [viewingProject, setViewingProject] = useState<Project | null>(null)
 
@@ -41,9 +41,9 @@ export default function Projects() {
     setIsDialogOpen(true)
   }
 
-  const handleViewTimeline = (project: Project) => {
+  const handleViewHistory = (project: Project) => {
     setViewingProject(project)
-    setIsTimelineOpen(true)
+    setIsHistoryOpen(true)
   }
 
   const handleDelete = async (id: string) => {
@@ -121,7 +121,7 @@ export default function Projects() {
         projects={filteredProjects}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        onViewTimeline={handleViewTimeline}
+        onViewHistory={handleViewHistory}
       />
 
       <ProjectFormDialog
@@ -131,10 +131,10 @@ export default function Projects() {
         initialData={editingProject}
       />
 
-      <ProjectTimelineSheet
+      <ProjectHistorySheet
         project={viewingProject}
-        open={isTimelineOpen}
-        onOpenChange={setIsTimelineOpen}
+        open={isHistoryOpen}
+        onOpenChange={setIsHistoryOpen}
       />
     </div>
   )

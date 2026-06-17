@@ -15,20 +15,20 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { MoreHorizontal, Edit, Trash, CalendarClock } from 'lucide-react'
+import { MoreHorizontal, Edit, Trash, Eye } from 'lucide-react'
 
 interface ProjectsTableProps {
   projects: Project[]
   onEdit: (project: Project) => void
   onDelete: (id: string) => void
-  onViewTimeline: (project: Project) => void
+  onViewHistory: (project: Project) => void
 }
 
 export function ProjectsTable({
   projects,
   onEdit,
   onDelete,
-  onViewTimeline,
+  onViewHistory,
 }: ProjectsTableProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -95,31 +95,38 @@ export function ProjectsTable({
               </TableCell>
               <TableCell>{project.leads?.empresa || '-'}</TableCell>
               <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Abrir menu</span>
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onViewTimeline(project)}>
-                      <CalendarClock className="mr-2 h-4 w-4" />
-                      Ver Tarefas (Timeline)
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onEdit(project)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                      onClick={() => onDelete(project.id)}
-                    >
-                      <Trash className="mr-2 h-4 w-4" />
-                      Excluir
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center justify-end gap-1">
+                  <Button
+                    variant="ghost"
+                    className="h-8 w-8 p-0"
+                    onClick={() => onViewHistory(project)}
+                    title="Ver histórico de interações e tarefas"
+                  >
+                    <span className="sr-only">Ver histórico</span>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Abrir menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onEdit(project)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                        onClick={() => onDelete(project.id)}
+                      >
+                        <Trash className="mr-2 h-4 w-4" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </TableCell>
             </TableRow>
           ))}
