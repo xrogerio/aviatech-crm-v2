@@ -5,8 +5,9 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Project } from '@/services/projectsService'
-import { Task, tasksService } from '@/services/tasksService'
+import { Task, tasksService, CreateTaskDTO } from '@/services/tasksService'
 import {
   Interaction,
   interactionsService,
@@ -14,8 +15,35 @@ import {
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Clock, CheckCircle, MessageSquare, CalendarClock } from 'lucide-react'
+import {
+  Clock,
+  CheckCircle,
+  MessageSquare,
+  CalendarClock,
+  Edit,
+  Trash,
+} from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
+import { InteractionFormDialog } from '@/components/leads/InteractionFormDialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { TaskForm } from '@/components/tasks/TaskForm'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 interface ProjectHistorySheetProps {
   project: Project | null
@@ -23,44 +51,94 @@ interface ProjectHistorySheetProps {
   onOpenChange: (open: boolean) => void
 }
 
-type TimelineItem =
-  | { type: 'interaction'; data: Interaction; date: Date }
-  | { type: 'task'; data: Task; date: Date }
-
 export function ProjectHistorySheet({
   project,
   open,
   onOpenChange,
 }: ProjectHistorySheetProps) {
-  const [items, setItems] = useState<TimelineItem[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [interactions, setInteractions] = useState<Interaction[]>([])
   const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
+
+  const [editingInteraction, setEditingInteraction] =
+    useState<Interaction | null>(null)
+  const [deletingInteraction, setDeletingInteraction] =
+    useState<Interaction | null>(null)
+
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null)
+
+  const fetchData = async () => {
+    if (!project) return
+    setLoading(true)
+    try {
+      const [fetchedTasks, fetchedInteractions] = await Promise.all([
+        tasksService.getTasksByProject(project.id),
+        interactionsService.getInteractionsByProject(project.id),
+      ])
+      setTasks(fetchedTasks)
+      setInteractions(fetchedInteractions)
+    } catch (error) {
+      toast({ title: 'Erro ao carregar histórico', variant: 'destructive' })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (open && project) {
-      setLoading(true)
-      Promise.all([
-        tasksService.getTasksByProject(project.id),
-        interactionsService.getInteractionsByProject(project.id),
-      ]).then(([tasks, interactions]) => {
-        const taskItems: TimelineItem[] = tasks.map((t) => ({
-          type: 'task',
-          data: t,
-          date: t.prazo ? new Date(t.prazo) : new Date(0),
-        }))
-        const interactionItems: TimelineItem[] = interactions.map((i) => ({
-          type: 'interaction',
-          data: i,
-          date: new Date(i.data),
-        }))
-
-        const merged = [...taskItems, ...interactionItems].sort(
-          (a, b) => b.date.getTime() - a.date.getTime(),
-        )
-        setItems(merged)
-        setLoading(false)
-      })
+      fetchData()
+    } else {
+      setTasks([])
+      setInteractions([])
     }
   }, [open, project])
+
+  const handleDeleteInteraction = async () => {
+    if (!deletingInteraction) return
+    try {
+      await interactionsService.deleteInteraction(deletingInteraction.id)
+      toast({ title: 'Interação removida com sucesso' })
+      setInteractions(
+        interactions.filter((i) => i.id !== deletingInteraction.id),
+      )
+    } catch (error) {
+      toast({ title: 'Erro ao remover interação', variant: 'destructive' })
+    } finally {
+      setDeletingInteraction(null)
+    }
+  }
+
+  const handleDeleteTask = async () => {
+    if (!deletingTask) return
+    try {
+      await tasksService.deleteTask(deletingTask.id)
+      toast({ title: 'Tarefa removida com sucesso' })
+      setTasks(tasks.filter((t) => t.id !== deletingTask.id))
+    } catch (error) {
+      toast({ title: 'Erro ao remover tarefa', variant: 'destructive' })
+    } finally {
+      setDeletingTask(null)
+    }
+  }
+
+  const handleUpdateTask = async (data: CreateTaskDTO) => {
+    if (!editingTask) return
+    try {
+      await tasksService.updateTask(editingTask.id, {
+        titulo: data.titulo,
+        descricao: data.descricao,
+        prazo: data.prazo,
+        status: data.status,
+      })
+      toast({ title: 'Tarefa atualizada com sucesso' })
+      setEditingTask(null)
+      fetchData()
+    } catch (error) {
+      toast({ title: 'Erro ao atualizar tarefa', variant: 'destructive' })
+    }
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -71,101 +149,245 @@ export function ProjectHistorySheet({
             Interações e tarefas relacionadas a este projeto
           </SheetDescription>
         </SheetHeader>
-        <div className="mt-6 space-y-4">
-          {loading ? (
-            <div className="space-y-4 mt-4">
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-20 w-full" />
-            </div>
-          ) : items.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center mt-8">
-              Nenhum histórico encontrado para este projeto.
-            </p>
-          ) : (
-            <div className="relative border-l-2 border-muted ml-3 space-y-6 mt-4">
-              {items.map((item, index) => (
-                <div key={index} className="relative pl-6">
-                  {item.type === 'task' ? (
-                    <div className="absolute -left-[9px] top-1 bg-background rounded-full">
-                      {item.data.status === 'concluida' ? (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <CalendarClock className="h-4 w-4 text-blue-500" />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="absolute -left-[9px] top-1 bg-background rounded-full">
-                      <MessageSquare className="h-4 w-4 text-purple-500" />
-                    </div>
-                  )}
 
-                  <div className="bg-card border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                    {item.type === 'task' ? (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-semibold flex items-center gap-2">
-                            <span className="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded font-medium">
-                              Tarefa
-                            </span>
-                            {item.data.titulo}
-                          </h4>
+        <div className="mt-6">
+          <Tabs defaultValue="interactions" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="interactions">Interações</TabsTrigger>
+              <TabsTrigger value="tasks">Tarefas</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="interactions" className="space-y-4 mt-4">
+              {loading ? (
+                <div className="space-y-4 mt-4">
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              ) : interactions.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center mt-8">
+                  Nenhuma interação encontrada.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {interactions.map((interaction) => (
+                    <div
+                      key={interaction.id}
+                      className="bg-card border rounded-lg p-4 shadow-sm relative group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-semibold flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4 text-purple-500" />
+                          {interaction.tipo}
+                        </h4>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 absolute right-2 top-2 bg-card rounded-md shadow-sm border p-0.5">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => setEditingInteraction(interaction)}
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeletingInteraction(interaction)}
+                          >
+                            <Trash className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
-                        {item.data.descricao && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {item.data.descricao}
-                          </p>
-                        )}
-                        {item.data.prazo && (
-                          <span className="text-xs text-muted-foreground flex items-center mt-2">
-                            <Clock className="h-3 w-3 mr-1" />
-                            Prazo:{' '}
-                            {format(item.date, "dd 'de' MMM 'às' HH:mm", {
-                              locale: ptBR,
-                            })}
+                      </div>
+                      {interaction.descricao && (
+                        <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">
+                          {interaction.descricao}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 mt-3">
+                        <span className="text-xs text-muted-foreground flex items-center">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {format(
+                            new Date(interaction.data),
+                            "dd 'de' MMM 'às' HH:mm",
+                            { locale: ptBR },
+                          )}
+                        </span>
+                        {interaction.user && (
+                          <span className="text-xs text-muted-foreground">
+                            Por: {interaction.user?.name || 'Usuário'}
                           </span>
                         )}
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Status:{' '}
-                          {item.data.status === 'concluida'
-                            ? 'Concluída'
-                            : 'Pendente'}
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-semibold flex items-center gap-2">
-                            <span className="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded font-medium">
-                              Interação
-                            </span>
-                            {item.data.tipo}
-                          </h4>
-                        </div>
-                        {item.data.descricao && (
-                          <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">
-                            {item.data.descricao}
-                          </p>
-                        )}
-                        <span className="text-xs text-muted-foreground flex items-center mt-2">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {format(item.date, "dd 'de' MMM 'às' HH:mm", {
-                            locale: ptBR,
-                          })}
-                        </span>
-                        {item.data.user && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Por: {item.data.user.name || 'Usuário'}
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
+            </TabsContent>
+
+            <TabsContent value="tasks" className="space-y-4 mt-4">
+              {loading ? (
+                <div className="space-y-4 mt-4">
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              ) : tasks.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center mt-8">
+                  Nenhuma tarefa encontrada.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {tasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="bg-card border rounded-lg p-4 shadow-sm relative group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-semibold flex items-center gap-2 pr-16">
+                          {task.status === 'Concluída' ||
+                          task.status === 'concluida' ? (
+                            <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          ) : (
+                            <CalendarClock className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                          )}
+                          <span className="truncate">{task.titulo}</span>
+                        </h4>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 absolute right-2 top-2 bg-card rounded-md shadow-sm border p-0.5">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => setEditingTask(task)}
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeletingTask(task)}
+                          >
+                            <Trash className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                      {task.descricao && (
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {task.descricao}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 mt-3">
+                        {task.prazo && (
+                          <span className="text-xs text-muted-foreground flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Prazo:{' '}
+                            {format(
+                              new Date(task.prazo),
+                              "dd 'de' MMM 'às' HH:mm",
+                              { locale: ptBR },
+                            )}
+                          </span>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          Status:{' '}
+                          {task.status === 'concluida'
+                            ? 'Concluída'
+                            : task.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </SheetContent>
+
+      <InteractionFormDialog
+        leadId={project?.lead_id || 'unassigned'}
+        interaction={editingInteraction}
+        open={!!editingInteraction}
+        onOpenChange={(open) => !open && setEditingInteraction(null)}
+        onSuccess={fetchData}
+      />
+
+      <Dialog
+        open={!!editingTask}
+        onOpenChange={(open) => !open && setEditingTask(null)}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Editar Tarefa</DialogTitle>
+          </DialogHeader>
+          {editingTask && (
+            <TaskForm
+              leadId={editingTask.lead_id || project?.lead_id || 'unassigned'}
+              defaultValues={{
+                titulo: editingTask.titulo,
+                descricao: editingTask.descricao || '',
+                status:
+                  editingTask.status === 'concluida'
+                    ? 'Concluída'
+                    : editingTask.status || 'Pendente',
+                prazo: editingTask.prazo
+                  ? new Date(editingTask.prazo)
+                  : new Date(),
+                leadId: editingTask.lead_id || project?.lead_id || 'unassigned',
+              }}
+              onSubmit={handleUpdateTask}
+              onCancel={() => setEditingTask(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog
+        open={!!deletingInteraction}
+        onOpenChange={(open) => !open && setDeletingInteraction(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover interação?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A interação será permanentemente
+              removida.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteInteraction}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!deletingTask}
+        onOpenChange={(open) => !open && setDeletingTask(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover tarefa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A tarefa será permanentemente
+              removida.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTask}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   )
 }
