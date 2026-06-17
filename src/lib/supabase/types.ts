@@ -112,7 +112,6 @@ export type Database = {
           id: string
           origem: string | null
           segmento: string | null
-          status: string
           telefone: string | null
         }
         Insert: {
@@ -126,7 +125,6 @@ export type Database = {
           id?: string
           origem?: string | null
           segmento?: string | null
-          status?: string
           telefone?: string | null
         }
         Update: {
@@ -140,7 +138,6 @@ export type Database = {
           id?: string
           origem?: string | null
           segmento?: string | null
-          status?: string
           telefone?: string | null
         }
         Relationships: [
@@ -199,6 +196,7 @@ export type Database = {
           id: string
           lead_id: string | null
           name: string
+          status: string
         }
         Insert: {
           classification?: string | null
@@ -207,6 +205,7 @@ export type Database = {
           id?: string
           lead_id?: string | null
           name: string
+          status?: string
         }
         Update: {
           classification?: string | null
@@ -215,6 +214,7 @@ export type Database = {
           id?: string
           lead_id?: string | null
           name?: string
+          status?: string
         }
         Relationships: [
           {
@@ -566,7 +566,6 @@ export const Constants = {
 //   email: text (nullable)
 //   telefone: text (nullable)
 //   segmento: text (nullable)
-//   status: text (not null, default: 'Novo Lead'::text)
 //   created_by: uuid (nullable, default: auth.uid())
 //   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
 //   cnpj: text (not null, default: ''::text)
@@ -587,6 +586,7 @@ export const Constants = {
 //   lead_id: uuid (nullable)
 //   created_by: uuid (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+//   status: text (not null, default: 'Novo Projeto'::text)
 // Table: proposals
 //   id: uuid (not null, default: gen_random_uuid())
 //   lead_id: uuid (nullable)

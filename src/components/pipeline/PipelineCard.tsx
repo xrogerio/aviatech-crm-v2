@@ -28,8 +28,31 @@ const PIPELINE_STAGES: ProjectStatus[] = [
 ]
 
 export function PipelineCard({ project, onUpdateStatus }: PipelineCardProps) {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData('projectId', project.id)
+    e.dataTransfer.effectAllowed = 'move'
+
+    // Delay opacity change to avoid making the drag shadow transparent
+    setTimeout(() => {
+      if (e.target instanceof HTMLElement) {
+        e.target.style.opacity = '0.5'
+      }
+    }, 0)
+  }
+
+  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+    if (e.target instanceof HTMLElement) {
+      e.target.style.opacity = '1'
+    }
+  }
+
   return (
-    <Card className="cursor-pointer shadow-sm hover:shadow-md transition-shadow">
+    <Card
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      className="cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-all"
+    >
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">

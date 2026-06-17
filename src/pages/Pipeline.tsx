@@ -42,14 +42,23 @@ export default function Pipeline() {
     id: string,
     status: ProjectStatus,
   ) => {
+    const projectToUpdate = projects.find((p) => p.id === id)
+    if (!projectToUpdate || projectToUpdate.status === status) return
+
+    const previousStatus = projectToUpdate.status
+
     try {
+      // Optimistic update
       setProjects((prev) =>
         prev.map((p) => (p.id === id ? { ...p, status } : p)),
       )
       await projectsService.updateProject(id, { status })
     } catch (err) {
       toast({ title: 'Erro ao atualizar status', variant: 'destructive' })
-      loadProjects()
+      // Revert on error
+      setProjects((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, status: previousStatus } : p)),
+      )
     }
   }
 

@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { Project, ProjectStatus } from '@/services/projectsService'
 import { PipelineCard } from '@/components/pipeline/PipelineCard'
+import { cn } from '@/lib/utils'
 
 interface PipelineColumnProps {
   title: string
@@ -14,6 +16,31 @@ export function PipelineColumn({
   projects,
   onUpdateStatus,
 }: PipelineColumnProps) {
+  const [isDragOver, setIsDragOver] = useState(false)
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    // Native HTML5 API workaround to avoid flicker when dragging over children
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    const projectId = e.dataTransfer.getData('projectId')
+    if (projectId) {
+      onUpdateStatus(projectId, status)
+    }
+  }
+
   const getColumnColor = (status: string) => {
     switch (status) {
       case 'Novo Projeto':
@@ -35,7 +62,14 @@ export function PipelineColumn({
 
   return (
     <div
-      className={`flex w-80 shrink-0 flex-col rounded-xl border ${getColumnColor(status)}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={cn(
+        'flex w-80 shrink-0 flex-col rounded-xl border transition-all duration-200',
+        getColumnColor(status),
+        isDragOver && 'ring-2 ring-primary/50 border-primary bg-muted/30',
+      )}
     >
       <div className="flex items-center justify-between border-b border-border/50 p-4">
         <h3 className="font-semibold text-foreground">{title}</h3>
