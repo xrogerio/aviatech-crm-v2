@@ -79,6 +79,120 @@ export default function Activities() {
 
   const [projects, setProjects] = useState<Project[]>([])
 
+  const handleLeadChange = (value: string) => {
+    setFilterLead(value)
+    if (value !== 'all' && filterProject !== 'all') {
+      const proj = projects.find((p) => p.id === filterProject)
+      if (proj && proj.lead_id !== value) {
+        setFilterProject('all')
+      }
+    }
+  }
+
+  const handleProjectChange = (value: string) => {
+    setFilterProject(value)
+    if (value !== 'all') {
+      const proj = projects.find((p) => p.id === value)
+      if (proj && proj.lead_id) {
+        setFilterLead(proj.lead_id)
+      }
+    }
+  }
+
+  const availableStatuses = useMemo(() => {
+    let relevantTasks = tasks
+
+    if (filterLead !== 'all') {
+      relevantTasks = relevantTasks.filter(
+        (t) =>
+          t.lead_id === filterLead ||
+          (t.project_id &&
+            projects.find((p) => p.id === t.project_id)?.lead_id ===
+              filterLead),
+      )
+    }
+
+    if (filterProject !== 'all') {
+      relevantTasks = relevantTasks.filter(
+        (t) => t.project_id === filterProject,
+      )
+    }
+
+    const statuses = new Set<string>()
+    relevantTasks.forEach((t) => {
+      if (t.status) statuses.add(t.status)
+    })
+    return Array.from(statuses).sort()
+  }, [tasks, filterLead, filterProject, projects])
+
+  const availableProjects = useMemo(() => {
+    let relevantProjects = projects
+
+    if (filterLead !== 'all') {
+      relevantProjects = relevantProjects.filter(
+        (p) => p.lead_id === filterLead,
+      )
+    }
+
+    if (filterStatus !== 'all') {
+      relevantProjects = relevantProjects.filter((p) =>
+        tasks.some((t) => t.project_id === p.id && t.status === filterStatus),
+      )
+    }
+
+    return relevantProjects
+  }, [projects, tasks, filterLead, filterStatus])
+
+  const availableLeads = useMemo(() => {
+    let relevantLeads = leads
+
+    if (filterProject !== 'all') {
+      const proj = projects.find((p) => p.id === filterProject)
+      if (proj && proj.lead_id) {
+        relevantLeads = relevantLeads.filter((l) => l.id === proj.lead_id)
+      }
+    }
+
+    if (filterStatus !== 'all') {
+      relevantLeads = relevantLeads.filter((l) =>
+        tasks.some(
+          (t) =>
+            (t.lead_id === l.id ||
+              (t.project_id &&
+                projects.find((p) => p.id === t.project_id)?.lead_id ===
+                  l.id)) &&
+            t.status === filterStatus,
+        ),
+      )
+    }
+
+    return relevantLeads
+  }, [leads, projects, tasks, filterProject, filterStatus])
+
+  useEffect(() => {
+    if (filterStatus !== 'all' && !availableStatuses.includes(filterStatus)) {
+      setFilterStatus('all')
+    }
+  }, [availableStatuses, filterStatus])
+
+  useEffect(() => {
+    if (
+      filterProject !== 'all' &&
+      !availableProjects.find((p) => p.id === filterProject)
+    ) {
+      setFilterProject('all')
+    }
+  }, [availableProjects, filterProject])
+
+  useEffect(() => {
+    if (
+      filterLead !== 'all' &&
+      !availableLeads.find((l) => l.id === filterLead)
+    ) {
+      setFilterLead('all')
+    }
+  }, [availableLeads, filterLead])
+
   const fetchProjects = async () => {
     try {
       const data = await projectsService.getProjects()
@@ -192,18 +306,14 @@ export default function Activities() {
       const searchMatch =
         task.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.leads?.empresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.projects?.name.toLowerCase().includes(searchTerm.toLowerCase())
+        task.projects?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.descricao?.toLowerCase().includes(searchTerm.toLowerCase())
 
       if (!searchMatch) return false
 
       // Status Filter
       if (filterStatus !== 'all') {
-        if (filterStatus === 'Pendente' && task.status === 'Concluída')
-          return false
-        if (filterStatus === 'Concluída' && task.status !== 'Concluída')
-          return false
-        if (filterStatus === 'Em Andamento' && task.status !== 'Em Andamento')
-          return false
+        if (task.status !== filterStatus) return false
       }
 
       // Date Filter
@@ -212,7 +322,12 @@ export default function Activities() {
       }
 
       // Lead Filter
-      if (filterLead !== 'all' && task.lead_id !== filterLead) return false
+      if (filterLead !== 'all') {
+        const proj = projects.find((p) => p.id === task.project_id)
+        const isDirect = task.lead_id === filterLead
+        const isViaProject = proj?.lead_id === filterLead
+        if (!isDirect && !isViaProject) return false
+      }
 
       // Project Filter
       if (filterProject !== 'all' && task.project_id !== filterProject)
@@ -220,7 +335,15 @@ export default function Activities() {
 
       return true
     })
-  }, [tasks, searchTerm, filterStatus, filterDate, filterLead, filterProject])
+  }, [
+    tasks,
+    searchTerm,
+    filterStatus,
+    filterDate,
+    filterLead,
+    filterProject,
+    projects,
+  ])
 
   const pendingTasks = filteredTasks.filter((t) => t.status !== 'Concluída')
   const completedTasks = filteredTasks.filter((t) => t.status === 'Concluída')
@@ -295,6 +418,42 @@ export default function Activities() {
         </div>
 
         <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+          {/* Lead Filter */}
+          <Select value={filterLead} onValueChange={handleLeadChange}>
+            <SelectTrigger className="w-[180px] bg-background">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <SelectValue placeholder="Lead" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos Leads</SelectItem>
+              {availableLeads.map((lead) => (
+                <SelectItem key={lead.id} value={lead.id}>
+                  {lead.company}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Project Filter */}
+          <Select value={filterProject} onValueChange={handleProjectChange}>
+            <SelectTrigger className="w-[180px] bg-background">
+              <div className="flex items-center gap-2">
+                <FolderKanban className="h-4 w-4" />
+                <SelectValue placeholder="Projeto" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos Projetos</SelectItem>
+              {availableProjects.map((project) => (
+                <SelectItem key={project.id} value={project.id}>
+                  {project.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           {/* Status Filter */}
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-[150px] bg-background">
@@ -305,43 +464,9 @@ export default function Activities() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos Status</SelectItem>
-              <SelectItem value="Pendente">Pendentes</SelectItem>
-              <SelectItem value="Em Andamento">Em Andamento</SelectItem>
-              <SelectItem value="Concluída">Concluídas</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Lead Filter */}
-          <Select value={filterLead} onValueChange={setFilterLead}>
-            <SelectTrigger className="w-[180px] bg-background">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <SelectValue placeholder="Lead" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos Leads</SelectItem>
-              {leads.map((lead) => (
-                <SelectItem key={lead.id} value={lead.id}>
-                  {lead.company}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Project Filter */}
-          <Select value={filterProject} onValueChange={setFilterProject}>
-            <SelectTrigger className="w-[180px] bg-background">
-              <div className="flex items-center gap-2">
-                <FolderKanban className="h-4 w-4" />
-                <SelectValue placeholder="Projeto" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos Projetos</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
+              {availableStatuses.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
                 </SelectItem>
               ))}
             </SelectContent>
