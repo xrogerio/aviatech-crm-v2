@@ -59,20 +59,12 @@ export const proposalsService = {
 
     if (!user) throw new Error('User not authenticated')
 
-    // Fetch the user's organization_id to ensure explicit assignment
-    const { data: userData } = await supabase
-      .from('users')
-      .select('organization_id')
-      .eq('id', user.id)
-      .single()
-
     const { data, error } = await supabase
       .from('proposals')
       .insert([
         {
           ...proposal,
           created_by: user.id,
-          organization_id: userData?.organization_id, // Explicitly set org id
         },
       ])
       .select()
