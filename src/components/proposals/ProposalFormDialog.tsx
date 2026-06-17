@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -33,10 +33,12 @@ import {
 import { DatePicker } from '@/components/ui/date-picker'
 import { useLeads } from '@/context/LeadsContext'
 import { Proposal } from '@/services/proposalsService'
+import { projectsService, Project } from '@/services/projectsService'
 
 const proposalSchema = z.object({
   titulo: z.string().min(3, 'O título deve ter pelo menos 3 caracteres'),
   lead_id: z.string().min(1, 'Selecione um lead'),
+  project_id: z.string().optional().nullable(),
   descricao: z.string().optional(),
   observacoes: z.string().optional(),
   validade: z.date().optional(),
@@ -68,12 +70,26 @@ export function ProposalFormDialog({
   initialData,
 }: ProposalFormDialogProps) {
   const { leads } = useLeads()
+  const [projects, setProjects] = useState<Project[]>([])
+
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const data = await projectsService.getProjects()
+        setProjects(data)
+      } catch (error) {
+        console.error('Failed to load projects', error)
+      }
+    }
+    if (open) loadProjects()
+  }, [open])
 
   const form = useForm<ProposalFormValues>({
     resolver: zodResolver(proposalSchema),
     defaultValues: {
       titulo: '',
       lead_id: '',
+      project_id: 'none',
       descricao: '',
       observacoes: '',
       status: 'Rascunho',
@@ -98,6 +114,7 @@ export function ProposalFormDialog({
         form.reset({
           titulo: initialData.titulo,
           lead_id: initialData.lead_id || '',
+          project_id: initialData.project_id || 'none',
           descricao: initialData.descricao || '',
           observacoes: initialData.observacoes || '',
           validade: initialData.validade
@@ -113,6 +130,7 @@ export function ProposalFormDialog({
         form.reset({
           titulo: '',
           lead_id: '',
+          project_id: 'none',
           descricao: '',
           observacoes: '',
           validade: undefined,
@@ -127,6 +145,7 @@ export function ProposalFormDialog({
     // Inject calculated total value
     const submissionData = {
       ...values,
+      project_id: values.project_id === 'none' ? null : values.project_id,
       valor: totalValue,
     }
     await onSubmit(submissionData)
@@ -150,24 +169,24 @@ export function ProposalFormDialog({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-6"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="titulo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Título da Proposta</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ex: Proposta de Desenvolvimento"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="titulo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Título da Proposta</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ex: Proposta de Desenvolvimento"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="lead_id"
@@ -187,6 +206,35 @@ export function ProposalFormDialog({
                         {leads.map((lead) => (
                           <SelectItem key={lead.id} value={lead.id}>
                             {lead.company} - {lead.contactName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="project_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Projeto (Opcional)</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || 'none'}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um projeto" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum projeto</SelectItem>
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

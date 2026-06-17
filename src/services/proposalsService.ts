@@ -24,6 +24,9 @@ export interface Proposal {
     contato: string
     email: string
   }
+  projects?: {
+    name: string
+  } | null
 }
 
 export const proposalsService = {
@@ -37,6 +40,9 @@ export const proposalsService = {
           empresa,
           contato,
           email
+        ),
+        projects (
+          name
         )
       `,
       )

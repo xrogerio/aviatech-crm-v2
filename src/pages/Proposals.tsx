@@ -226,7 +226,8 @@ export default function Proposals() {
   const filteredProposals = proposals.filter(
     (p) =>
       p.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.leads?.empresa.toLowerCase().includes(searchTerm.toLowerCase()),
+      p.leads?.empresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.projects?.name.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   return (
@@ -274,6 +275,7 @@ export default function Proposals() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Título</TableHead>
+                  <TableHead>Projeto</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Validade</TableHead>
@@ -285,7 +287,7 @@ export default function Proposals() {
                 {filteredProposals.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={7}
                       className="text-center h-24 text-muted-foreground"
                     >
                       Nenhuma proposta encontrada.
@@ -297,6 +299,7 @@ export default function Proposals() {
                       <TableCell className="font-medium">
                         {prop.titulo}
                       </TableCell>
+                      <TableCell>{prop.projects?.name || '-'}</TableCell>
                       <TableCell>
                         {prop.leads?.empresa || 'Sem Cliente'}
                       </TableCell>
