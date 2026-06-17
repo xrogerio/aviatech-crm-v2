@@ -69,6 +69,9 @@ export function ProjectHistorySheet({
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [deletingTask, setDeletingTask] = useState<Task | null>(null)
 
+  const [creatingTask, setCreatingTask] = useState(false)
+  const [creatingInteraction, setCreatingInteraction] = useState(false)
+
   const fetchData = async () => {
     if (!project) return
     setLoading(true)
@@ -140,6 +143,17 @@ export function ProjectHistorySheet({
     }
   }
 
+  const handleCreateTask = async (data: CreateTaskDTO) => {
+    try {
+      await tasksService.createTask(data)
+      toast({ title: 'Tarefa criada com sucesso' })
+      setCreatingTask(false)
+      fetchData()
+    } catch (error) {
+      toast({ title: 'Erro ao criar tarefa', variant: 'destructive' })
+    }
+  }
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
@@ -158,6 +172,12 @@ export function ProjectHistorySheet({
             </TabsList>
 
             <TabsContent value="interactions" className="space-y-4 mt-4">
+              <div className="flex justify-end mb-4">
+                <Button size="sm" onClick={() => setCreatingInteraction(true)}>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Nova Interação
+                </Button>
+              </div>
               {loading ? (
                 <div className="space-y-4 mt-4">
                   <Skeleton className="h-20 w-full" />
@@ -225,6 +245,12 @@ export function ProjectHistorySheet({
             </TabsContent>
 
             <TabsContent value="tasks" className="space-y-4 mt-4">
+              <div className="flex justify-end mb-4">
+                <Button size="sm" onClick={() => setCreatingTask(true)}>
+                  <CalendarClock className="h-4 w-4 mr-2" />
+                  Nova Tarefa
+                </Button>
+              </div>
               {loading ? (
                 <div className="space-y-4 mt-4">
                   <Skeleton className="h-20 w-full" />
@@ -305,37 +331,64 @@ export function ProjectHistorySheet({
 
       <InteractionFormDialog
         leadId={project?.lead_id || 'unassigned'}
+        projectId={project?.id}
         interaction={editingInteraction}
-        open={!!editingInteraction}
-        onOpenChange={(open) => !open && setEditingInteraction(null)}
+        open={!!editingInteraction || creatingInteraction}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingInteraction(null)
+            setCreatingInteraction(false)
+          }
+        }}
         onSuccess={fetchData}
       />
 
       <Dialog
-        open={!!editingTask}
-        onOpenChange={(open) => !open && setEditingTask(null)}
+        open={!!editingTask || creatingTask}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingTask(null)
+            setCreatingTask(false)
+          }
+        }}
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Editar Tarefa</DialogTitle>
+            <DialogTitle>
+              {editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}
+            </DialogTitle>
           </DialogHeader>
-          {editingTask && (
+          {(editingTask || creatingTask) && (
             <TaskForm
-              leadId={editingTask.lead_id || project?.lead_id || 'unassigned'}
-              defaultValues={{
-                titulo: editingTask.titulo,
-                descricao: editingTask.descricao || '',
-                status:
-                  editingTask.status === 'concluida'
-                    ? 'Concluída'
-                    : editingTask.status || 'Pendente',
-                prazo: editingTask.prazo
-                  ? new Date(editingTask.prazo)
-                  : new Date(),
-                leadId: editingTask.lead_id || project?.lead_id || 'unassigned',
+              projectId={project?.id || editingTask?.project_id || undefined}
+              leadId={editingTask?.lead_id || project?.lead_id || 'unassigned'}
+              defaultValues={
+                editingTask
+                  ? {
+                      titulo: editingTask.titulo,
+                      descricao: editingTask.descricao || '',
+                      status:
+                        editingTask.status === 'concluida'
+                          ? 'Concluída'
+                          : editingTask.status || 'Pendente',
+                      prazo: editingTask.prazo
+                        ? new Date(editingTask.prazo)
+                        : new Date(),
+                      leadId:
+                        editingTask.lead_id || project?.lead_id || 'unassigned',
+                      projectId:
+                        editingTask.project_id || project?.id || undefined,
+                    }
+                  : {
+                      leadId: project?.lead_id || 'unassigned',
+                      projectId: project?.id || undefined,
+                    }
+              }
+              onSubmit={editingTask ? handleUpdateTask : handleCreateTask}
+              onCancel={() => {
+                setEditingTask(null)
+                setCreatingTask(false)
               }}
-              onSubmit={handleUpdateTask}
-              onCancel={() => setEditingTask(null)}
             />
           )}
         </DialogContent>
