@@ -146,15 +146,17 @@ export function LeadInteractionsSection({
                 <div className="flex-1 space-y-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <p className="text-sm font-medium">{interaction.tipo}</p>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {format(
-                        new Date(interaction.data),
-                        "dd/MM/yyyy 'às' HH:mm",
-                        {
-                          locale: ptBR,
-                        },
-                      )}
-                    </span>
+                    {interaction.created_at && (
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {format(
+                          new Date(interaction.created_at),
+                          "dd/MM/yyyy 'às' HH:mm",
+                          {
+                            locale: ptBR,
+                          },
+                        )}
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
                     {interaction.descricao}
@@ -169,16 +171,6 @@ export function LeadInteractionsSection({
                           <span className="opacity-70 capitalize">
                             ({interaction.user.role})
                           </span>
-                        )}
-                      </p>
-                    )}
-                    {interaction.created_at && (
-                      <p className="text-xs text-muted-foreground">
-                        Criado em:{' '}
-                        {format(
-                          new Date(interaction.created_at),
-                          "dd 'de' MMM 'às' HH:mm",
-                          { locale: ptBR },
                         )}
                       </p>
                     )}

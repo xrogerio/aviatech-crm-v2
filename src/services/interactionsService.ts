@@ -23,7 +23,7 @@ export const interactionsService = {
       .from('interactions')
       .select('*, user:users(name, role)')
       .eq('lead_id', leadId)
-      .order('data', { ascending: false })
+      .order('created_at', { ascending: false })
 
     if (error) throw error
     return data as unknown as Interaction[]
@@ -34,7 +34,7 @@ export const interactionsService = {
       .from('interactions')
       .select('*, user:users(name, role)')
       .eq('project_id', projectId)
-      .order('data', { ascending: false })
+      .order('created_at', { ascending: false })
 
     if (error) throw error
     return data as unknown as Interaction[]

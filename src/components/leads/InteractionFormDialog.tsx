@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { format } from 'date-fns'
 
 import {
   Dialog,
@@ -28,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 import {
   interactionsService,
   Interaction,
@@ -39,7 +37,6 @@ import { useAuth } from '@/context/AuthContext'
 const formSchema = z.object({
   tipo: z.string().min(1, 'Selecione um tipo'),
   descricao: z.string().min(1, 'A descrição é obrigatória'),
-  data: z.string().min(1, 'A data e hora são obrigatórias'),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -68,7 +65,6 @@ export function InteractionFormDialog({
     defaultValues: {
       tipo: '',
       descricao: '',
-      data: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
     },
   })
 
@@ -78,13 +74,11 @@ export function InteractionFormDialog({
         form.reset({
           tipo: interaction.tipo,
           descricao: interaction.descricao || '',
-          data: format(new Date(interaction.data), "yyyy-MM-dd'T'HH:mm"),
         })
       } else {
         form.reset({
           tipo: '',
           descricao: '',
-          data: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
         })
       }
     }
@@ -97,7 +91,6 @@ export function InteractionFormDialog({
         await interactionsService.updateInteraction(interaction.id, {
           tipo: values.tipo,
           descricao: values.descricao,
-          data: new Date(values.data).toISOString(),
         })
         toast({ title: 'Interação atualizada com sucesso' })
       } else {
@@ -105,7 +98,6 @@ export function InteractionFormDialog({
           lead_id: leadId,
           tipo: values.tipo,
           descricao: values.descricao,
-          data: new Date(values.data).toISOString(),
           user_id: user?.id,
         })
         toast({ title: 'Interação registrada com sucesso' })
@@ -158,20 +150,6 @@ export function InteractionFormDialog({
                       <SelectItem value="Email">Email</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="data"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Data e Hora</FormLabel>
-                  <FormControl>
-                    <Input type="datetime-local" {...field} />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

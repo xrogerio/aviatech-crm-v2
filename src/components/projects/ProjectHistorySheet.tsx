@@ -224,18 +224,9 @@ export function ProjectHistorySheet({
                         </p>
                       )}
                       <div className="flex items-center gap-4 mt-3 flex-wrap">
-                        <span className="text-xs text-muted-foreground flex items-center">
-                          <Clock className="h-3 w-3 mr-1" />
-                          Data:{' '}
-                          {format(
-                            new Date(interaction.data),
-                            "dd 'de' MMM 'às' HH:mm",
-                            { locale: ptBR },
-                          )}
-                        </span>
                         {interaction.created_at && (
                           <span className="text-xs text-muted-foreground flex items-center">
-                            Criado em:{' '}
+                            <Clock className="h-3 w-3 mr-1" />
                             {format(
                               new Date(interaction.created_at),
                               "dd 'de' MMM 'às' HH:mm",

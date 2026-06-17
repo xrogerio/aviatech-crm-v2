@@ -50,30 +50,33 @@ export type Database = {
       }
       interactions: {
         Row: {
-          data: string
+          created_at: string
           descricao: string | null
           id: string
           lead_id: string | null
           project_id: string | null
           tipo: string
+          updated_at: string
           user_id: string | null
         }
         Insert: {
-          data?: string
+          created_at?: string
           descricao?: string | null
           id?: string
           lead_id?: string | null
           project_id?: string | null
           tipo: string
+          updated_at?: string
           user_id?: string | null
         }
         Update: {
-          data?: string
+          created_at?: string
           descricao?: string | null
           id?: string
           lead_id?: string | null
           project_id?: string | null
           tipo?: string
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: [
@@ -563,8 +566,9 @@ export const Constants = {
 //   user_id: uuid (nullable, default: auth.uid())
 //   tipo: text (not null)
 //   descricao: text (nullable)
-//   data: timestamp with time zone (not null, default: timezone('utc'::text, now()))
 //   project_id: uuid (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+//   updated_at: timestamp with time zone (not null, default: now())
 // Table: leads
 //   id: uuid (not null, default: gen_random_uuid())
 //   empresa: text (not null)
@@ -800,6 +804,17 @@ export const Constants = {
 //   END;
 //   $function$
 //
+// FUNCTION update_interactions_updated_at()
+//   CREATE OR REPLACE FUNCTION public.update_interactions_updated_at()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//   AS $function$
+//   BEGIN
+//       NEW.updated_at = NOW();
+//       RETURN NEW;
+//   END;
+//   $function$
+//
 // FUNCTION update_tasks_updated_at()
 //   CREATE OR REPLACE FUNCTION public.update_tasks_updated_at()
 //    RETURNS trigger
@@ -813,5 +828,7 @@ export const Constants = {
 //
 
 // --- TRIGGERS ---
+// Table: interactions
+//   trigger_update_interactions_updated_at: CREATE TRIGGER trigger_update_interactions_updated_at BEFORE UPDATE ON public.interactions FOR EACH ROW EXECUTE FUNCTION update_interactions_updated_at()
 // Table: tasks
 //   trigger_update_tasks_updated_at: CREATE TRIGGER trigger_update_tasks_updated_at BEFORE UPDATE ON public.tasks FOR EACH ROW EXECUTE FUNCTION update_tasks_updated_at()
