@@ -40,21 +40,20 @@ import {
 } from '@/components/ui/command'
 import { CreateTaskDTO } from '@/services/tasksService'
 import { useAuth } from '@/context/AuthContext'
-import { useLeads } from '@/context/LeadsContext'
 
 const taskSchema = z.object({
   titulo: z.string().min(1, 'O título é obrigatório'),
   descricao: z.string().optional(),
   prazo: z.date({ required_error: 'O prazo é obrigatório' }),
   status: z.string().default('Pendente'),
-  leadId: z
-    .string({ required_error: 'Selecione um lead' })
-    .min(1, 'Selecione um lead'),
+  projectId: z.string().optional(),
+  leadId: z.string().optional(),
 })
 
 type TaskFormValues = z.infer<typeof taskSchema>
 
 interface TaskFormProps {
+  projectId?: string
   leadId?: string
   onSubmit: (data: CreateTaskDTO) => Promise<void>
   onCancel?: () => void
@@ -62,15 +61,30 @@ interface TaskFormProps {
 }
 
 export function TaskForm({
+  projectId,
   leadId,
   onSubmit,
   onCancel,
   defaultValues,
 }: TaskFormProps) {
   const [submitting, setSubmitting] = useState(false)
-  const [openLeadSelect, setOpenLeadSelect] = useState(false)
+  const [openProjectSelect, setOpenProjectSelect] = useState(false)
   const { user } = useAuth()
-  const { leads, loading: loadingLeads } = useLeads()
+
+  const [projects, setProjects] = useState<{ id: string; name: string }[]>([])
+  const [loadingProjects, setLoadingProjects] = useState(true)
+
+  useEffect(() => {
+    import('@/services/projectsService').then(({ projectsService }) => {
+      projectsService
+        .getProjects()
+        .then((data) => {
+          setProjects(data)
+          setLoadingProjects(false)
+        })
+        .catch(console.error)
+    })
+  }, [])
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -79,12 +93,20 @@ export function TaskForm({
       descricao: '',
       status: 'Pendente',
       prazo: new Date(),
+      projectId: projectId || '',
       leadId: leadId || '',
       ...defaultValues,
     },
   })
 
-  // Watch for leadId prop changes to update the form value if needed
+  // Synchronize dynamic defaults for project
+  useEffect(() => {
+    if (projectId) {
+      form.setValue('projectId', projectId)
+    }
+  }, [projectId, form])
+
+  // Synchronize dynamic defaults for lead
   useEffect(() => {
     if (leadId) {
       form.setValue('leadId', leadId)
@@ -100,7 +122,8 @@ export function TaskForm({
         descricao: values.descricao || null,
         prazo: values.prazo.toISOString(),
         status: values.status,
-        lead_id: values.leadId,
+        project_id: values.projectId || null,
+        lead_id: values.leadId || null,
         user_id: user.id,
       })
       form.reset({
@@ -108,6 +131,7 @@ export function TaskForm({
         descricao: '',
         status: 'Pendente',
         prazo: new Date(),
+        projectId: projectId || '',
         leadId: leadId || '',
       })
     } finally {
@@ -118,65 +142,63 @@ export function TaskForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        {!leadId && (
+        {!projectId && (
           <FormField
             control={form.control}
-            name="leadId"
+            name="projectId"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>
-                  Lead <span className="text-destructive">*</span>
-                </FormLabel>
-                <Popover open={openLeadSelect} onOpenChange={setOpenLeadSelect}>
+                <FormLabel>Projeto</FormLabel>
+                <Popover
+                  open={openProjectSelect}
+                  onOpenChange={setOpenProjectSelect}
+                >
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant="outline"
                         role="combobox"
-                        aria-expanded={openLeadSelect}
-                        disabled={loadingLeads}
+                        aria-expanded={openProjectSelect}
+                        disabled={loadingProjects}
                         className={cn(
                           'w-full justify-between',
                           !field.value && 'text-muted-foreground',
                         )}
                       >
                         {field.value
-                          ? leads.find((lead) => lead.id === field.value)
-                              ?.company || 'Lead não encontrado'
-                          : 'Selecione um lead...'}
+                          ? projects.find((p) => p.id === field.value)?.name ||
+                            'Projeto não encontrado'
+                          : 'Selecione um projeto...'}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
                     <Command>
-                      <CommandInput placeholder="Buscar lead..." />
+                      <CommandInput placeholder="Buscar projeto..." />
                       <CommandList>
-                        <CommandEmpty>Nenhum lead encontrado.</CommandEmpty>
+                        <CommandEmpty>Nenhum projeto encontrado.</CommandEmpty>
                         <CommandGroup>
-                          {leads.map((lead) => (
+                          {projects.map((project) => (
                             <CommandItem
-                              value={`${lead.company} ${lead.contactName}`}
-                              key={lead.id}
+                              value={project.name}
+                              key={project.id}
                               onSelect={() => {
-                                form.setValue('leadId', lead.id)
-                                setOpenLeadSelect(false)
+                                form.setValue('projectId', project.id)
+                                setOpenProjectSelect(false)
                               }}
                             >
                               <Check
                                 className={cn(
                                   'mr-2 h-4 w-4',
-                                  lead.id === field.value
+                                  project.id === field.value
                                     ? 'opacity-100'
                                     : 'opacity-0',
                                 )}
                               />
                               <div className="flex flex-col">
                                 <span className="font-medium">
-                                  {lead.company}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {lead.contactName}
+                                  {project.name}
                                 </span>
                               </div>
                             </CommandItem>

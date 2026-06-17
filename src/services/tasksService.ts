@@ -3,7 +3,10 @@ import { Database } from '@/lib/supabase/types'
 
 export type Task = Database['public']['Tables']['tasks']['Row'] & {
   leads?: { empresa: string } | null
+  projects?: { name: string } | null
   project_id?: string | null
+  created_at?: string
+  updated_at?: string
 }
 export type CreateTaskDTO = Database['public']['Tables']['tasks']['Insert'] & {
   project_id?: string | null
@@ -16,7 +19,7 @@ export const tasksService = {
   async getTasksByProject(projectId: string): Promise<Task[]> {
     const { data, error } = await supabase
       .from('tasks')
-      .select('*, leads(empresa)')
+      .select('*, leads(empresa), projects(name)')
       .eq('project_id', projectId)
       .order('prazo', { ascending: true })
 
@@ -27,7 +30,7 @@ export const tasksService = {
   async getTasks(userId?: string): Promise<Task[]> {
     let query = supabase
       .from('tasks')
-      .select('*, leads(empresa)')
+      .select('*, leads(empresa), projects(name)')
       .order('prazo', { ascending: true })
 
     if (userId) {
@@ -43,7 +46,7 @@ export const tasksService = {
   async getTasksByLead(leadId: string): Promise<Task[]> {
     const { data, error } = await supabase
       .from('tasks')
-      .select('*, leads(empresa)')
+      .select('*, leads(empresa), projects(name)')
       .eq('lead_id', leadId)
       .order('prazo', { ascending: true })
 
@@ -55,7 +58,7 @@ export const tasksService = {
     const { data, error } = await supabase
       .from('tasks')
       .insert(task)
-      .select('*, leads(empresa)')
+      .select('*, leads(empresa), projects(name)')
       .single()
 
     if (error) throw error
@@ -67,7 +70,7 @@ export const tasksService = {
       .from('tasks')
       .update(updates)
       .eq('id', id)
-      .select('*, leads(empresa)')
+      .select('*, leads(empresa), projects(name)')
       .single()
 
     if (error) throw error

@@ -16,6 +16,7 @@ import {
   User,
   Pencil,
   Trash2,
+  FolderKanban,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -176,7 +177,8 @@ export default function Activities() {
       // Search
       const searchMatch =
         task.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.leads?.empresa.toLowerCase().includes(searchTerm.toLowerCase())
+        task.leads?.empresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.projects?.name.toLowerCase().includes(searchTerm.toLowerCase())
 
       if (!searchMatch) return false
 
@@ -252,6 +254,7 @@ export default function Activities() {
                         ? new Date(editingTask.prazo)
                         : new Date(),
                       status: editingTask.status || 'Pendente',
+                      projectId: editingTask.project_id || '',
                       leadId: editingTask.lead_id || '',
                     }
                   : undefined
@@ -420,7 +423,13 @@ export default function Activities() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
-                          {task.leads && (
+                          {task.projects && (
+                            <span className="flex items-center gap-1 text-primary/80">
+                              <FolderKanban className="h-3.5 w-3.5" />
+                              {task.projects.name}
+                            </span>
+                          )}
+                          {!task.projects && task.leads && (
                             <span className="flex items-center gap-1 text-primary/80">
                               <User className="h-3.5 w-3.5" />
                               {task.leads.empresa}
@@ -442,6 +451,31 @@ export default function Activities() {
                                 )
                               : 'Sem prazo'}
                           </span>
+
+                          {task.created_at && (
+                            <span
+                              className="flex items-center gap-1 text-muted-foreground/70"
+                              title="Criado em"
+                            >
+                              <CalendarIcon className="h-3 w-3" />
+                              {format(
+                                new Date(task.created_at),
+                                'dd/MM/yyyy HH:mm',
+                              )}
+                            </span>
+                          )}
+                          {task.updated_at && (
+                            <span
+                              className="flex items-center gap-1 text-muted-foreground/70"
+                              title="Última edição"
+                            >
+                              <Pencil className="h-3 w-3" />
+                              {format(
+                                new Date(task.updated_at),
+                                'dd/MM/yyyy HH:mm',
+                              )}
+                            </span>
+                          )}
                         </div>
 
                         {task.descricao && (
@@ -489,7 +523,7 @@ export default function Activities() {
                 {completedTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center gap-4 p-4 rounded-xl border bg-muted/40 transition-all"
+                    className="flex items-center gap-4 p-4 rounded-xl border bg-muted/40 transition-all group"
                   >
                     <Checkbox
                       checked={true}
@@ -502,8 +536,14 @@ export default function Activities() {
                         {task.titulo}
                       </h4>
 
-                      <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                        {task.leads && (
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
+                        {task.projects && (
+                          <span className="flex items-center gap-1">
+                            <FolderKanban className="h-3.5 w-3.5" />
+                            {task.projects.name}
+                          </span>
+                        )}
+                        {!task.projects && task.leads && (
                           <span className="flex items-center gap-1">
                             <User className="h-3.5 w-3.5" />
                             {task.leads.empresa}
@@ -515,6 +555,31 @@ export default function Activities() {
                             ? format(new Date(task.prazo), 'dd/MM/yyyy')
                             : '-'}
                         </span>
+
+                        {task.created_at && (
+                          <span
+                            className="flex items-center gap-1 text-muted-foreground/70"
+                            title="Criado em"
+                          >
+                            <CalendarIcon className="h-3 w-3" />
+                            {format(
+                              new Date(task.created_at),
+                              'dd/MM/yyyy HH:mm',
+                            )}
+                          </span>
+                        )}
+                        {task.updated_at && (
+                          <span
+                            className="flex items-center gap-1 text-muted-foreground/70"
+                            title="Última edição"
+                          >
+                            <Pencil className="h-3 w-3" />
+                            {format(
+                              new Date(task.updated_at),
+                              'dd/MM/yyyy HH:mm',
+                            )}
+                          </span>
+                        )}
                       </div>
                     </div>
 
