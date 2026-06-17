@@ -305,6 +305,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          created_at: string
           descricao: string | null
           id: string
           lead_id: string | null
@@ -312,9 +313,11 @@ export type Database = {
           project_id: string | null
           status: string | null
           titulo: string
+          updated_at: string
           user_id: string | null
         }
         Insert: {
+          created_at?: string
           descricao?: string | null
           id?: string
           lead_id?: string | null
@@ -322,9 +325,11 @@ export type Database = {
           project_id?: string | null
           status?: string | null
           titulo: string
+          updated_at?: string
           user_id?: string | null
         }
         Update: {
+          created_at?: string
           descricao?: string | null
           id?: string
           lead_id?: string | null
@@ -332,6 +337,7 @@ export type Database = {
           project_id?: string | null
           status?: string | null
           titulo?: string
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: [
@@ -610,6 +616,8 @@ export const Constants = {
 //   prazo: timestamp with time zone (nullable)
 //   status: text (nullable, default: 'pending'::text)
 //   project_id: uuid (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+//   updated_at: timestamp with time zone (not null, default: now())
 // Table: users
 //   id: uuid (not null)
 //   role: text (not null, default: 'vendedor'::text)
@@ -792,3 +800,18 @@ export const Constants = {
 //   END;
 //   $function$
 //
+// FUNCTION update_tasks_updated_at()
+//   CREATE OR REPLACE FUNCTION public.update_tasks_updated_at()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//   AS $function$
+//   BEGIN
+//       NEW.updated_at = NOW();
+//       RETURN NEW;
+//   END;
+//   $function$
+//
+
+// --- TRIGGERS ---
+// Table: tasks
+//   trigger_update_tasks_updated_at: CREATE TRIGGER trigger_update_tasks_updated_at BEFORE UPDATE ON public.tasks FOR EACH ROW EXECUTE FUNCTION update_tasks_updated_at()

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { Task, tasksService } from '@/services/tasksService'
+import { Project, projectsService } from '@/services/projectsService'
 import { useLeads } from '@/context/LeadsContext'
 import { useToast } from '@/hooks/use-toast'
 import { format, isPast, isToday, isSameDay } from 'date-fns'
@@ -74,6 +75,18 @@ export default function Activities() {
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined)
   const [filterLead, setFilterLead] = useState<string>('all')
+  const [filterProject, setFilterProject] = useState<string>('all')
+
+  const [projects, setProjects] = useState<Project[]>([])
+
+  const fetchProjects = async () => {
+    try {
+      const data = await projectsService.getProjects()
+      setProjects(data || [])
+    } catch (error: any) {
+      console.error('Erro ao carregar projetos:', error)
+    }
+  }
 
   const fetchTasks = async () => {
     if (!user) return
@@ -97,6 +110,7 @@ export default function Activities() {
 
   useEffect(() => {
     fetchTasks()
+    fetchProjects()
   }, [user, role])
 
   const handleSaveTask = async (taskData: any) => {
@@ -200,9 +214,13 @@ export default function Activities() {
       // Lead Filter
       if (filterLead !== 'all' && task.lead_id !== filterLead) return false
 
+      // Project Filter
+      if (filterProject !== 'all' && task.project_id !== filterProject)
+        return false
+
       return true
     })
-  }, [tasks, searchTerm, filterStatus, filterDate, filterLead])
+  }, [tasks, searchTerm, filterStatus, filterDate, filterLead, filterProject])
 
   const pendingTasks = filteredTasks.filter((t) => t.status !== 'Concluída')
   const completedTasks = filteredTasks.filter((t) => t.status === 'Concluída')
@@ -306,6 +324,24 @@ export default function Activities() {
               {leads.map((lead) => (
                 <SelectItem key={lead.id} value={lead.id}>
                   {lead.company}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Project Filter */}
+          <Select value={filterProject} onValueChange={setFilterProject}>
+            <SelectTrigger className="w-[180px] bg-background">
+              <div className="flex items-center gap-2">
+                <FolderKanban className="h-4 w-4" />
+                <SelectValue placeholder="Projeto" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos Projetos</SelectItem>
+              {projects.map((project) => (
+                <SelectItem key={project.id} value={project.id}>
+                  {project.name}
                 </SelectItem>
               ))}
             </SelectContent>
