@@ -574,14 +574,15 @@ export const Constants = {
 //   Policy "Authenticated users can select companies" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
 // Table: interactions
-//   Policy "Admins and Managers manage all interactions" (ALL, PERMISSIVE) roles={public}
-//     USING: is_admin_or_manager()
-//     WITH CHECK: is_admin_or_manager()
+//   Policy "Authenticated users can delete interactions" (DELETE, PERMISSIVE) roles={authenticated}
+//     USING: true
+//   Policy "Authenticated users can insert interactions" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: true
 //   Policy "Authenticated users can select interactions" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
-//   Policy "Vendedores manage own interactions" (ALL, PERMISSIVE) roles={public}
-//     USING: (user_id = auth.uid())
-//     WITH CHECK: (user_id = auth.uid())
+//   Policy "Authenticated users can update interactions" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: leads
 //   Policy "Admins and Managers manage all leads" (ALL, PERMISSIVE) roles={public}
 //     USING: is_admin_or_manager()
@@ -610,12 +611,15 @@ export const Constants = {
 //   Policy "Vendedores manage own proposals" (ALL, PERMISSIVE) roles={public}
 //     USING: (created_by = auth.uid())
 // Table: tasks
-//   Policy "Admins and Managers manage all tasks" (ALL, PERMISSIVE) roles={public}
-//     USING: is_admin_or_manager()
+//   Policy "Authenticated users can delete tasks" (DELETE, PERMISSIVE) roles={authenticated}
+//     USING: true
+//   Policy "Authenticated users can insert tasks" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: true
 //   Policy "Authenticated users can select tasks" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
-//   Policy "Vendedores manage own tasks" (ALL, PERMISSIVE) roles={public}
-//     USING: (user_id = auth.uid())
+//   Policy "Authenticated users can update tasks" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: users
 //   Policy "Admins and Managers can view all profiles" (SELECT, PERMISSIVE) roles={public}
 //     USING: is_admin_or_manager()
