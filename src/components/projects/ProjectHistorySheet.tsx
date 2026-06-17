@@ -223,15 +223,41 @@ export function ProjectHistorySheet({
                           {interaction.descricao}
                         </p>
                       )}
-                      <div className="flex items-center gap-4 mt-3">
+                      <div className="flex items-center gap-4 mt-3 flex-wrap">
                         <span className="text-xs text-muted-foreground flex items-center">
                           <Clock className="h-3 w-3 mr-1" />
+                          Data:{' '}
                           {format(
                             new Date(interaction.data),
                             "dd 'de' MMM 'às' HH:mm",
                             { locale: ptBR },
                           )}
                         </span>
+                        {interaction.created_at && (
+                          <span className="text-xs text-muted-foreground flex items-center">
+                            Criado em:{' '}
+                            {format(
+                              new Date(interaction.created_at),
+                              "dd 'de' MMM 'às' HH:mm",
+                              { locale: ptBR },
+                            )}
+                          </span>
+                        )}
+                        {interaction.updated_at &&
+                          interaction.created_at &&
+                          new Date(interaction.updated_at).getTime() -
+                            new Date(interaction.created_at).getTime() >
+                            1000 && (
+                            <span className="text-xs text-muted-foreground flex items-center">
+                              <Edit className="h-3 w-3 mr-1" />
+                              Editado em:{' '}
+                              {format(
+                                new Date(interaction.updated_at),
+                                "dd 'de' MMM 'às' HH:mm",
+                                { locale: ptBR },
+                              )}
+                            </span>
+                          )}
                         {interaction.user && (
                           <span className="text-xs text-muted-foreground">
                             Por: {interaction.user?.name || 'Usuário'}

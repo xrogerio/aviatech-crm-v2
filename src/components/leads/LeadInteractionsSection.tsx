@@ -159,18 +159,45 @@ export function LeadInteractionsSection({
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
                     {interaction.descricao}
                   </p>
-                  {interaction.user && (
-                    <p className="text-xs text-muted-foreground pt-2 flex items-center gap-1 flex-wrap">
-                      <span className="font-medium text-foreground">
-                        {interaction.user.name || 'Usuário Desconhecido'}
-                      </span>
-                      {interaction.user.role && (
-                        <span className="opacity-70 capitalize">
-                          ({interaction.user.role})
+                  <div className="flex items-center gap-3 pt-2 flex-wrap">
+                    {interaction.user && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <span className="font-medium text-foreground">
+                          {interaction.user.name || 'Usuário Desconhecido'}
                         </span>
+                        {interaction.user.role && (
+                          <span className="opacity-70 capitalize">
+                            ({interaction.user.role})
+                          </span>
+                        )}
+                      </p>
+                    )}
+                    {interaction.created_at && (
+                      <p className="text-xs text-muted-foreground">
+                        Criado em:{' '}
+                        {format(
+                          new Date(interaction.created_at),
+                          "dd 'de' MMM 'às' HH:mm",
+                          { locale: ptBR },
+                        )}
+                      </p>
+                    )}
+                    {interaction.updated_at &&
+                      interaction.created_at &&
+                      new Date(interaction.updated_at).getTime() -
+                        new Date(interaction.created_at).getTime() >
+                        1000 && (
+                        <p className="text-xs text-muted-foreground flex items-center">
+                          <Pencil className="h-3 w-3 mr-1" />
+                          Editado em:{' '}
+                          {format(
+                            new Date(interaction.updated_at),
+                            "dd 'de' MMM 'às' HH:mm",
+                            { locale: ptBR },
+                          )}
+                        </p>
                       )}
-                    </p>
-                  )}
+                  </div>
                 </div>
                 <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                   <Button

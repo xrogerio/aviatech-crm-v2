@@ -5,6 +5,8 @@ export type Interaction =
   Database['public']['Tables']['interactions']['Row'] & {
     user?: { name: string | null; role: string } | null
     project_id?: string | null
+    created_at?: string
+    updated_at?: string
   }
 export type CreateInteractionDTO =
   Database['public']['Tables']['interactions']['Insert'] & {
