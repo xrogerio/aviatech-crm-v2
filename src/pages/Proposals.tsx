@@ -96,7 +96,8 @@ export default function Proposals() {
             .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
             .logo { font-size: 24px; font-weight: bold; color: #000; }
             .meta { text-align: right; font-size: 14px; color: #666; }
-            .client-info { margin-bottom: 40px; }
+            .info-section { display: flex; justify-content: space-between; margin-bottom: 40px; }
+            .project-info { text-align: right; }
             .title { font-size: 28px; font-weight: bold; margin-bottom: 20px; color: #1a1a1a; }
             .description { margin-bottom: 30px; line-height: 1.6; }
             table { w-full; width: 100%; border-collapse: collapse; margin-bottom: 30px; }
@@ -122,11 +123,17 @@ export default function Proposals() {
             </div>
           </div>
 
-          <div class="client-info">
-            <strong>Cliente:</strong><br>
-            ${proposal.leads?.empresa || 'Empresa não informada'}<br>
-            ${proposal.leads?.contato ? `Att: ${proposal.leads.contato}<br>` : ''}
-            ${proposal.leads?.email ? `${proposal.leads.email}` : ''}
+          <div class="info-section">
+            <div class="client-info">
+              <strong>Cliente:</strong><br>
+              ${proposal.leads?.empresa || 'Empresa não informada'}<br>
+              ${proposal.leads?.contato ? `Att: ${proposal.leads.contato}<br>` : ''}
+              ${proposal.leads?.email ? `${proposal.leads.email}` : ''}
+            </div>
+            <div class="project-info">
+              <strong>Projeto:</strong><br>
+              ${proposal.projects?.name || 'Não Informado'}
+            </div>
           </div>
 
           <div class="title">${proposal.titulo}</div>
