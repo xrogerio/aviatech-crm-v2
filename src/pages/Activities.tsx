@@ -604,6 +604,7 @@ export default function Activities() {
                             )}
                           >
                             <Clock className="h-3.5 w-3.5" />
+                            <span className="font-medium">Prazo:</span>
                             {task.prazo
                               ? format(
                                   new Date(task.prazo),
@@ -614,11 +615,9 @@ export default function Activities() {
                           </span>
 
                           {task.created_at && (
-                            <span
-                              className="flex items-center gap-1 text-muted-foreground/70"
-                              title="Criado em"
-                            >
+                            <span className="flex items-center gap-1 text-muted-foreground/70">
                               <CalendarIcon className="h-3 w-3" />
+                              <span className="font-medium">Criação em:</span>
                               {format(
                                 new Date(task.created_at),
                                 'dd/MM/yyyy HH:mm',
@@ -626,11 +625,11 @@ export default function Activities() {
                             </span>
                           )}
                           {task.updated_at && (
-                            <span
-                              className="flex items-center gap-1 text-muted-foreground/70"
-                              title="Última edição"
-                            >
+                            <span className="flex items-center gap-1 text-muted-foreground/70">
                               <Pencil className="h-3 w-3" />
+                              <span className="font-medium">
+                                Última edição:
+                              </span>
                               {format(
                                 new Date(task.updated_at),
                                 'dd/MM/yyyy HH:mm',
@@ -712,17 +711,16 @@ export default function Activities() {
                         )}
                         <span className="flex items-center gap-1">
                           <Clock className="h-3.5 w-3.5" />
+                          <span className="font-medium">Prazo:</span>
                           {task.prazo
                             ? format(new Date(task.prazo), 'dd/MM/yyyy')
                             : '-'}
                         </span>
 
                         {task.created_at && (
-                          <span
-                            className="flex items-center gap-1 text-muted-foreground/70"
-                            title="Criado em"
-                          >
+                          <span className="flex items-center gap-1 text-muted-foreground/70">
                             <CalendarIcon className="h-3 w-3" />
+                            <span className="font-medium">Criação em:</span>
                             {format(
                               new Date(task.created_at),
                               'dd/MM/yyyy HH:mm',
@@ -730,11 +728,9 @@ export default function Activities() {
                           </span>
                         )}
                         {task.updated_at && (
-                          <span
-                            className="flex items-center gap-1 text-muted-foreground/70"
-                            title="Última edição"
-                          >
+                          <span className="flex items-center gap-1 text-muted-foreground/70">
                             <Pencil className="h-3 w-3" />
+                            <span className="font-medium">Última edição:</span>
                             {format(
                               new Date(task.updated_at),
                               'dd/MM/yyyy HH:mm',
