@@ -1,91 +1,59 @@
-import React, { useState } from 'react'
-import { Lead } from '@/context/LeadsContext'
-import { Badge } from '@/components/ui/badge'
-import { PipelineCard } from './PipelineCard'
-import { cn } from '@/lib/utils'
+import { Project, ProjectStatus } from '@/services/projectsService'
+import { PipelineCard } from '@/components/pipeline/PipelineCard'
 
 interface PipelineColumnProps {
-  id: string
   title: string
-  color: string
-  leads: Lead[]
-  onDropLead: (leadId: string, status: string) => void
+  status: ProjectStatus
+  projects: Project[]
+  onUpdateStatus: (id: string, status: ProjectStatus) => void
 }
 
 export function PipelineColumn({
-  id,
   title,
-  color,
-  leads,
-  onDropLead,
+  status,
+  projects,
+  onUpdateStatus,
 }: PipelineColumnProps) {
-  const [isOver, setIsOver] = useState(false)
-
-  const totalValue = leads.reduce((acc, lead) => {
-    const leadTotal =
-      lead.proposals?.reduce((sum, prop) => sum + (prop.valor || 0), 0) || 0
-    return acc + leadTotal
-  }, 0)
-
-  const formattedTotal = new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(totalValue)
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    setIsOver(true)
-  }
-
-  const handleDragLeave = () => {
-    setIsOver(false)
-  }
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    setIsOver(false)
-    const leadId = e.dataTransfer.getData('leadId')
-    if (leadId) {
-      onDropLead(leadId, id)
+  const getColumnColor = (status: string) => {
+    switch (status) {
+      case 'Novo Projeto':
+        return 'border-slate-200 bg-slate-50/50 dark:bg-slate-900/20'
+      case 'Qualificação':
+        return 'border-yellow-200 bg-yellow-50/50 dark:bg-yellow-900/20'
+      case 'Proposta Enviada':
+        return 'border-blue-200 bg-blue-50/50 dark:bg-blue-900/20'
+      case 'Negociação':
+        return 'border-purple-200 bg-purple-50/50 dark:bg-purple-900/20'
+      case 'Fechado':
+        return 'border-green-200 bg-green-50/50 dark:bg-green-900/20'
+      case 'Negado':
+        return 'border-red-200 bg-red-50/50 dark:bg-red-900/20'
+      default:
+        return 'border-border bg-muted/50'
     }
   }
 
   return (
     <div
-      className={cn(
-        'flex-1 flex flex-col min-w-[280px] h-full transition-colors rounded-xl',
-        isOver ? 'bg-muted/50 ring-2 ring-primary/20' : '',
-      )}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      className={`flex w-80 shrink-0 flex-col rounded-xl border ${getColumnColor(status)}`}
     >
-      <div
-        className={cn(
-          'p-3 rounded-t-xl border-t border-x flex flex-col gap-2 bg-white/50 backdrop-blur-sm',
-          color,
-        )}
-      >
-        <div className="flex justify-between items-center">
-          <h3 className="font-semibold text-sm uppercase tracking-wide">
-            {title}
-          </h3>
-          <Badge variant="secondary" className="bg-white/80">
-            {leads.length}
-          </Badge>
-        </div>
-        <div className="text-xs font-mono text-muted-foreground font-medium">
-          Total: {formattedTotal}
-        </div>
+      <div className="flex items-center justify-between border-b border-border/50 p-4">
+        <h3 className="font-semibold text-foreground">{title}</h3>
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-background text-xs font-medium shadow-sm">
+          {projects.length}
+        </span>
       </div>
-
-      <div className="flex-1 bg-muted/30 border-x border-b rounded-b-xl p-3 space-y-3 overflow-y-auto min-h-[150px]">
-        {leads.map((lead) => (
-          <PipelineCard key={lead.id} lead={lead} />
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
+        {projects.map((project) => (
+          <PipelineCard
+            key={project.id}
+            project={project}
+            onUpdateStatus={onUpdateStatus}
+          />
         ))}
-        {leads.length === 0 && (
-          <div className="h-24 border-2 border-dashed border-muted rounded-lg flex items-center justify-center text-muted-foreground text-xs">
-            Arraste leads aqui
+        {projects.length === 0 && (
+          <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/50 bg-background/50 p-4 text-center text-sm text-muted-foreground">
+            Nenhum projeto
           </div>
         )}
       </div>

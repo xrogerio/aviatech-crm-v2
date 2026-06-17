@@ -38,14 +38,6 @@ const leadSchema = z.object({
   segment: z.string().optional(),
   origin: z.string().optional(),
   address: z.string().optional(),
-  status: z.enum([
-    'Novo Lead',
-    'Qualificação',
-    'Proposta Enviada',
-    'Negociação',
-    'Fechado Ganho',
-    'Fechado Perdido',
-  ]),
 })
 
 export type LeadFormValues = z.infer<typeof leadSchema>
@@ -74,7 +66,6 @@ export function LeadFormDialog({
       segment: '',
       origin: '',
       address: '',
-      status: 'Novo Lead',
     },
   })
 
@@ -89,7 +80,6 @@ export function LeadFormDialog({
         segment: initialData.segment,
         origin: initialData.origin,
         address: initialData.address || '',
-        status: initialData.status,
       })
     } else {
       form.reset({
@@ -101,7 +91,6 @@ export function LeadFormDialog({
         segment: '',
         origin: '',
         address: '',
-        status: 'Novo Lead',
       })
     }
   }, [initialData, form, open])
@@ -243,45 +232,6 @@ export function LeadFormDialog({
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Novo Lead">Novo Lead</SelectItem>
-                        <SelectItem value="Qualificação">
-                          Qualificação
-                        </SelectItem>
-                        <SelectItem value="Proposta Enviada">
-                          Proposta Enviada
-                        </SelectItem>
-                        <SelectItem value="Negociação">Negociação</SelectItem>
-                        <SelectItem value="Fechado Ganho">
-                          Fechado Ganho
-                        </SelectItem>
-                        <SelectItem value="Fechado Perdido">
-                          Fechado Perdido
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

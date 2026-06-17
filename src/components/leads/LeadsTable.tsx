@@ -15,7 +15,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { MoreHorizontal, Pencil, Trash2, Eye } from 'lucide-react'
 import { Lead } from '@/context/LeadsContext'
 
@@ -32,45 +31,6 @@ export function LeadsTable({
   onDelete,
   onViewHistory,
 }: LeadsTableProps) {
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Novo Lead':
-        return (
-          <Badge className="bg-blue-500/15 text-blue-700 hover:bg-blue-500/25 border-blue-200">
-            Novo Lead
-          </Badge>
-        )
-      case 'Qualificação':
-        return (
-          <Badge className="bg-yellow-500/15 text-yellow-700 hover:bg-yellow-500/25 border-yellow-200">
-            Qualificação
-          </Badge>
-        )
-      case 'Proposta Enviada':
-        return (
-          <Badge className="bg-orange-500/15 text-orange-700 hover:bg-orange-500/25 border-orange-200">
-            Proposta Enviada
-          </Badge>
-        )
-      case 'Negociação':
-        return (
-          <Badge className="bg-purple-500/15 text-purple-700 hover:bg-purple-500/25 border-purple-200">
-            Negociação
-          </Badge>
-        )
-      case 'Fechado Ganho':
-        return (
-          <Badge className="bg-green-500/15 text-green-700 hover:bg-green-500/25 border-green-200">
-            Fechado Ganho
-          </Badge>
-        )
-      case 'Fechado Perdido':
-        return <Badge variant="secondary">Fechado Perdido</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
-
   return (
     <div className="rounded-md border bg-card">
       <Table>
@@ -80,14 +40,13 @@ export function LeadsTable({
             <TableHead>Contato</TableHead>
             <TableHead>Segmento</TableHead>
             <TableHead>Email</TableHead>
-            <TableHead>Status</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {leads.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
+              <TableCell colSpan={5} className="h-24 text-center">
                 Nenhum lead encontrado.
               </TableCell>
             </TableRow>
@@ -102,7 +61,6 @@ export function LeadsTable({
                 <TableCell className="text-muted-foreground">
                   {lead.email || '-'}
                 </TableCell>
-                <TableCell>{getStatusBadge(lead.status)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Button

@@ -1,92 +1,88 @@
-import { useLeads, Lead } from '@/context/LeadsContext'
-import { Badge } from '@/components/ui/badge'
+import { useState, useEffect, useCallback } from 'react'
+import {
+  Project,
+  ProjectStatus,
+  projectsService,
+} from '@/services/projectsService'
 import { PipelineColumn } from '@/components/pipeline/PipelineColumn'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { useToast } from '@/hooks/use-toast'
+import { Loader2 } from 'lucide-react'
 
-const STAGES = [
-  {
-    id: 'Novo Lead',
-    title: 'Novo Lead',
-    color: 'bg-blue-500/10 border-blue-200',
-  },
-  {
-    id: 'Qualificação',
-    title: 'Qualificação',
-    color: 'bg-yellow-500/10 border-yellow-200',
-  },
-  {
-    id: 'Proposta Enviada',
-    title: 'Proposta Enviada',
-    color: 'bg-orange-500/10 border-orange-200',
-  },
-  {
-    id: 'Negociação',
-    title: 'Negociação',
-    color: 'bg-purple-500/10 border-purple-200',
-  },
-  {
-    id: 'Fechado Ganho',
-    title: 'Fechado Ganho',
-    color: 'bg-green-500/10 border-green-200',
-  },
-  {
-    id: 'Fechado Perdido',
-    title: 'Fechado Perdido',
-    color: 'bg-gray-500/10 border-gray-200',
-  },
+const PIPELINE_STAGES: ProjectStatus[] = [
+  'Novo Projeto',
+  'Qualificação',
+  'Proposta Enviada',
+  'Negociação',
+  'Fechado',
+  'Negado',
 ]
 
 export default function Pipeline() {
-  const { leads, updateLead } = useLeads()
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
-  const handleDropLead = (leadId: string, newStatus: string) => {
-    updateLead(leadId, { status: newStatus as Lead['status'] })
+  const loadProjects = useCallback(async () => {
+    try {
+      const data = await projectsService.getProjects()
+      setProjects(data)
+    } catch (err) {
+      console.error(err)
+      toast({ title: 'Erro ao carregar pipeline', variant: 'destructive' })
+    } finally {
+      setLoading(false)
+    }
+  }, [toast])
+
+  useEffect(() => {
+    loadProjects()
+  }, [loadProjects])
+
+  const handleUpdateProjectStatus = async (
+    id: string,
+    status: ProjectStatus,
+  ) => {
+    try {
+      setProjects((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, status } : p)),
+      )
+      await projectsService.updateProject(id, { status })
+    } catch (err) {
+      toast({ title: 'Erro ao atualizar status', variant: 'destructive' })
+      loadProjects()
+    }
   }
 
-  const getLeadsForStage = (stageId: string) => {
-    return leads.filter((l) => l.status === stageId)
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
   }
-
-  const totalPipelineValue = leads.reduce((acc, lead) => {
-    if (lead.status === 'Fechado Perdido') return acc
-    const leadTotal =
-      lead.proposals?.reduce((sum, prop) => sum + (prop.valor || 0), 0) || 0
-    return acc + leadTotal
-  }, 0)
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col space-y-4 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Pipeline de Vendas
+    <div className="flex h-[calc(100vh-120px)] flex-col space-y-4 animate-fade-in">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Pipeline de Projetos
         </h1>
-        <div className="flex gap-2">
-          <Badge variant="outline" className="text-sm py-1 px-3 bg-background">
-            Pipeline Ativo:{' '}
-            {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-              maximumFractionDigits: 0,
-            }).format(totalPipelineValue)}
-          </Badge>
-        </div>
+        <p className="text-muted-foreground mt-1">
+          Acompanhe a evolução dos seus projetos através das etapas.
+        </p>
       </div>
 
-      <ScrollArea className="flex-1 w-full rounded-md border bg-background/40 backdrop-blur-sm">
-        <div className="flex h-full min-w-[1600px] p-4 gap-4">
-          {STAGES.map((stage) => (
-            <PipelineColumn
-              key={stage.id}
-              id={stage.id}
-              title={stage.title}
-              color={stage.color}
-              leads={getLeadsForStage(stage.id)}
-              onDropLead={handleDropLead}
-            />
-          ))}
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      <div className="flex flex-1 gap-4 overflow-x-auto pb-4">
+        {PIPELINE_STAGES.map((stage) => (
+          <PipelineColumn
+            key={stage}
+            title={stage}
+            status={stage}
+            projects={projects.filter((p) => p.status === stage)}
+            onUpdateStatus={handleUpdateProjectStatus}
+          />
+        ))}
+      </div>
     </div>
   )
 }

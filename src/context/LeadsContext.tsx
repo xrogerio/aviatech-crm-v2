@@ -11,14 +11,6 @@ import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/context/AuthContext'
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
-export type LeadStatus =
-  | 'Novo Lead'
-  | 'Qualificação'
-  | 'Proposta Enviada'
-  | 'Negociação'
-  | 'Fechado Ganho'
-  | 'Fechado Perdido'
-
 export interface Proposal {
   id: string
   title: string
@@ -36,7 +28,6 @@ export interface Lead {
   segment: string
   origin: string
   address?: string
-  status: LeadStatus
   createdAt: string
   createdBy: string
   proposals: Proposal[]
@@ -91,7 +82,6 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
           segment: dbLead.segmento || '',
           origin: dbLead.origem || '',
           address: dbLead.endereco || '',
-          status: dbLead.status as LeadStatus,
           createdAt: dbLead.created_at,
           createdBy: dbLead.created_by || '',
           proposals:
@@ -251,7 +241,6 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
         segmento: newLead.segment,
         origem: newLead.origin,
         endereco: newLead.address || '',
-        status: newLead.status,
         created_by: user?.id,
         // organization_id will be set by DB default based on user or trigger
       }
@@ -275,7 +264,6 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
           segment: data.segmento || '',
           origin: data.origem || '',
           address: data.endereco || '',
-          status: data.status as LeadStatus,
           createdAt: data.created_at,
           createdBy: data.created_by || user?.id || '',
           proposals: [],
@@ -312,7 +300,6 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       if (updates.segment !== undefined) dbUpdates.segmento = updates.segment
       if (updates.origin !== undefined) dbUpdates.origem = updates.origin
       if (updates.address !== undefined) dbUpdates.endereco = updates.address
-      if (updates.status !== undefined) dbUpdates.status = updates.status
 
       const { error } = await supabase
         .from('leads')

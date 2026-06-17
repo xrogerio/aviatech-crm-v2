@@ -1,5 +1,13 @@
 import { supabase } from '@/lib/supabase/client'
 
+export type ProjectStatus =
+  | 'Novo Projeto'
+  | 'Qualificação'
+  | 'Proposta Enviada'
+  | 'Negociação'
+  | 'Fechado'
+  | 'Negado'
+
 export interface Project {
   id: string
   name: string
@@ -7,6 +15,7 @@ export interface Project {
   lead_id: string | null
   created_by: string | null
   created_at: string
+  status: ProjectStatus
   leads?: {
     empresa: string
   } | null

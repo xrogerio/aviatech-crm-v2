@@ -54,6 +54,7 @@ export type Database = {
           descricao: string | null
           id: string
           lead_id: string | null
+          project_id: string | null
           tipo: string
           user_id: string | null
         }
@@ -62,6 +63,7 @@ export type Database = {
           descricao?: string | null
           id?: string
           lead_id?: string | null
+          project_id?: string | null
           tipo: string
           user_id?: string | null
         }
@@ -70,6 +72,7 @@ export type Database = {
           descricao?: string | null
           id?: string
           lead_id?: string | null
+          project_id?: string | null
           tipo?: string
           user_id?: string | null
         }
@@ -79,6 +82,13 @@ export type Database = {
             columns: ['lead_id']
             isOneToOne: false
             referencedRelation: 'leads'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'interactions_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
             referencedColumns: ['id']
           },
           {
@@ -181,6 +191,48 @@ export type Database = {
           },
         ]
       }
+      projects: {
+        Row: {
+          classification: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          lead_id: string | null
+          name: string
+        }
+        Insert: {
+          classification?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lead_id?: string | null
+          name: string
+        }
+        Update: {
+          classification?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lead_id?: string | null
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'projects_created_by_fkey'
+            columns: ['created_by']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'projects_lead_id_fkey'
+            columns: ['lead_id']
+            isOneToOne: false
+            referencedRelation: 'leads'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       proposals: {
         Row: {
           created_at: string
@@ -191,6 +243,7 @@ export type Database = {
           lead_id: string | null
           numero: string | null
           observacoes: string | null
+          project_id: string | null
           status: string | null
           titulo: string
           validade: string | null
@@ -205,6 +258,7 @@ export type Database = {
           lead_id?: string | null
           numero?: string | null
           observacoes?: string | null
+          project_id?: string | null
           status?: string | null
           titulo: string
           validade?: string | null
@@ -219,6 +273,7 @@ export type Database = {
           lead_id?: string | null
           numero?: string | null
           observacoes?: string | null
+          project_id?: string | null
           status?: string | null
           titulo?: string
           validade?: string | null
@@ -239,6 +294,13 @@ export type Database = {
             referencedRelation: 'leads'
             referencedColumns: ['id']
           },
+          {
+            foreignKeyName: 'proposals_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
         ]
       }
       tasks: {
@@ -247,6 +309,7 @@ export type Database = {
           id: string
           lead_id: string | null
           prazo: string | null
+          project_id: string | null
           status: string | null
           titulo: string
           user_id: string | null
@@ -256,6 +319,7 @@ export type Database = {
           id?: string
           lead_id?: string | null
           prazo?: string | null
+          project_id?: string | null
           status?: string | null
           titulo: string
           user_id?: string | null
@@ -265,6 +329,7 @@ export type Database = {
           id?: string
           lead_id?: string | null
           prazo?: string | null
+          project_id?: string | null
           status?: string | null
           titulo?: string
           user_id?: string | null
@@ -275,6 +340,13 @@ export type Database = {
             columns: ['lead_id']
             isOneToOne: false
             referencedRelation: 'leads'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'tasks_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
             referencedColumns: ['id']
           },
           {
@@ -486,6 +558,7 @@ export const Constants = {
 //   tipo: text (not null)
 //   descricao: text (nullable)
 //   data: timestamp with time zone (not null, default: timezone('utc'::text, now()))
+//   project_id: uuid (nullable)
 // Table: leads
 //   id: uuid (not null, default: gen_random_uuid())
 //   empresa: text (not null)
@@ -507,6 +580,13 @@ export const Constants = {
 //   type: text (nullable)
 //   read: boolean (nullable, default: false)
 //   created_at: timestamp with time zone (nullable, default: now())
+// Table: projects
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   classification: text (nullable)
+//   lead_id: uuid (nullable)
+//   created_by: uuid (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: proposals
 //   id: uuid (not null, default: gen_random_uuid())
 //   lead_id: uuid (nullable)
@@ -520,6 +600,7 @@ export const Constants = {
 //   validade: timestamp with time zone (nullable)
 //   itens: jsonb (nullable, default: '[]'::jsonb)
 //   numero: text (nullable)
+//   project_id: uuid (nullable)
 // Table: tasks
 //   id: uuid (not null, default: gen_random_uuid())
 //   lead_id: uuid (nullable)
@@ -528,6 +609,7 @@ export const Constants = {
 //   descricao: text (nullable)
 //   prazo: timestamp with time zone (nullable)
 //   status: text (nullable, default: 'pending'::text)
+//   project_id: uuid (nullable)
 // Table: users
 //   id: uuid (not null)
 //   role: text (not null, default: 'vendedor'::text)
@@ -542,6 +624,7 @@ export const Constants = {
 // Table: interactions
 //   FOREIGN KEY interactions_lead_id_fkey: FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
 //   PRIMARY KEY interactions_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY interactions_project_id_fkey: FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 //   FOREIGN KEY interactions_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id)
 // Table: leads
 //   FOREIGN KEY leads_created_by_fkey: FOREIGN KEY (created_by) REFERENCES users(id)
@@ -549,13 +632,19 @@ export const Constants = {
 // Table: notifications
 //   FOREIGN KEY fk_notifications_user_id: FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 //   PRIMARY KEY notifications_pkey: PRIMARY KEY (id)
+// Table: projects
+//   FOREIGN KEY projects_created_by_fkey: FOREIGN KEY (created_by) REFERENCES users(id)
+//   FOREIGN KEY projects_lead_id_fkey: FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
+//   PRIMARY KEY projects_pkey: PRIMARY KEY (id)
 // Table: proposals
 //   FOREIGN KEY proposals_created_by_fkey: FOREIGN KEY (created_by) REFERENCES users(id)
 //   FOREIGN KEY proposals_lead_id_fkey: FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
 //   PRIMARY KEY proposals_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY proposals_project_id_fkey: FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 // Table: tasks
 //   FOREIGN KEY tasks_lead_id_fkey: FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
 //   PRIMARY KEY tasks_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY tasks_project_id_fkey: FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 //   FOREIGN KEY tasks_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id)
 // Table: users
 //   FOREIGN KEY users_company_id_fkey: FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL
@@ -603,6 +692,13 @@ export const Constants = {
 //     USING: (user_id = auth.uid())
 //   Policy "authenticated_update_notifications" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (user_id = auth.uid())
+// Table: projects
+//   Policy "Admins and Managers manage all projects" (ALL, PERMISSIVE) roles={public}
+//     USING: is_admin_or_manager()
+//   Policy "Authenticated users can select projects" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
+//   Policy "Vendedores manage own projects" (ALL, PERMISSIVE) roles={public}
+//     USING: ((created_by = auth.uid()) OR (EXISTS ( SELECT 1    FROM leads   WHERE ((leads.id = projects.lead_id) AND (leads.created_by = auth.uid())))))
 // Table: proposals
 //   Policy "Admins and Managers manage all proposals" (ALL, PERMISSIVE) roles={public}
 //     USING: is_admin_or_manager()

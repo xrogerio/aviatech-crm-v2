@@ -33,6 +33,14 @@ const formSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   classification: z.string().optional(),
   lead_id: z.string().optional(),
+  status: z.enum([
+    'Novo Projeto',
+    'Qualificação',
+    'Proposta Enviada',
+    'Negociação',
+    'Fechado',
+    'Negado',
+  ]),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -58,6 +66,7 @@ export function ProjectFormDialog({
       name: '',
       classification: '',
       lead_id: 'none',
+      status: 'Novo Projeto',
     },
   })
 
@@ -68,9 +77,15 @@ export function ProjectFormDialog({
           name: initialData.name,
           classification: initialData.classification || '',
           lead_id: initialData.lead_id || 'none',
+          status: initialData.status || 'Novo Projeto',
         })
       } else {
-        form.reset({ name: '', classification: '', lead_id: 'none' })
+        form.reset({
+          name: '',
+          classification: '',
+          lead_id: 'none',
+          status: 'Novo Projeto',
+        })
       }
     }
   }, [open, initialData, form])
@@ -117,6 +132,33 @@ export function ProjectFormDialog({
                   <FormControl>
                     <Input placeholder="Ex: Tier 1, Premium..." {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Novo Projeto">Novo Projeto</SelectItem>
+                      <SelectItem value="Qualificação">Qualificação</SelectItem>
+                      <SelectItem value="Proposta Enviada">
+                        Proposta Enviada
+                      </SelectItem>
+                      <SelectItem value="Negociação">Negociação</SelectItem>
+                      <SelectItem value="Fechado">Fechado</SelectItem>
+                      <SelectItem value="Negado">Negado</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
