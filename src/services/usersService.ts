@@ -5,7 +5,7 @@ export interface UserProfile {
   role: 'vendedor' | 'gerente' | 'admin'
   email?: string
   name?: string
-  organization_id?: string
+  company_id?: string | null
 }
 
 export const usersService = {
@@ -40,6 +40,16 @@ export const usersService = {
 
   async updateUserRole(id: string, role: string) {
     const { error } = await supabase.from('users').update({ role }).eq('id', id)
+
+    if (error) throw error
+    return true
+  },
+
+  async updateUserCompany(id: string, company_id: string | null) {
+    const { error } = await supabase
+      .from('users')
+      .update({ company_id })
+      .eq('id', id)
 
     if (error) throw error
     return true
