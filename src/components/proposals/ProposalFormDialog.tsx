@@ -38,9 +38,9 @@ import { usersService, UserProfile } from '@/services/usersService'
 
 const proposalSchema = z.object({
   titulo: z.string().min(3, 'O título deve ter pelo menos 3 caracteres'),
-  lead_id: z.string().min(1, 'Selecione um lead'),
-  project_id: z.string().optional().nullable(),
-  signatory_id: z.string().optional().nullable(),
+  project_id: z.string().min(1, 'Selecione um projeto'),
+  lead_id: z.string().min(1, 'Lead é obrigatório'),
+  signatory_id: z.string().min(1, 'Selecione um signatário'),
   descricao: z.string().optional(),
   observacoes: z.string().optional(),
   validade: z.date().optional(),
@@ -96,7 +96,7 @@ export function ProposalFormDialog({
     defaultValues: {
       titulo: '',
       lead_id: '',
-      project_id: 'none',
+      project_id: '',
       signatory_id: '',
       descricao: '',
       observacoes: '',
@@ -108,10 +108,12 @@ export function ProposalFormDialog({
   const projectId = form.watch('project_id')
 
   useEffect(() => {
-    if (projectId && projectId !== 'none') {
+    if (projectId) {
       const project = projects.find((p) => p.id === projectId)
       if (project && project.lead_id) {
         form.setValue('lead_id', project.lead_id)
+      } else {
+        form.setValue('lead_id', '')
       }
     }
   }, [projectId, projects, form])
@@ -133,7 +135,7 @@ export function ProposalFormDialog({
         form.reset({
           titulo: initialData.titulo,
           lead_id: initialData.lead_id || '',
-          project_id: initialData.project_id || 'none',
+          project_id: initialData.project_id || '',
           signatory_id: initialData.signatory_id || '',
           descricao: initialData.descricao || '',
           observacoes: initialData.observacoes || '',
@@ -150,7 +152,7 @@ export function ProposalFormDialog({
         form.reset({
           titulo: '',
           lead_id: '',
-          project_id: 'none',
+          project_id: '',
           signatory_id: '',
           descricao: '',
           observacoes: '',
@@ -166,8 +168,6 @@ export function ProposalFormDialog({
     // Inject calculated total value
     const submissionData = {
       ...values,
-      project_id: values.project_id === 'none' ? null : values.project_id,
-      signatory_id: values.signatory_id || null,
       valor: totalValue,
     }
     await onSubmit(submissionData)
@@ -214,23 +214,23 @@ export function ProposalFormDialog({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="lead_id"
+                name="project_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cliente (Lead)</FormLabel>
+                    <FormLabel>Projeto</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value || ''}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione um cliente" />
+                          <SelectValue placeholder="Selecione um projeto" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {leads.map((lead) => (
-                          <SelectItem key={lead.id} value={lead.id}>
-                            {lead.company} - {lead.contactName}
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -242,31 +242,27 @@ export function ProposalFormDialog({
 
               <FormField
                 control={form.control}
-                name="project_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Projeto (Opcional)</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || 'none'}
-                    >
+                name="lead_id"
+                render={({ field }) => {
+                  const selectedLead = leads.find((l) => l.id === field.value)
+                  return (
+                    <FormItem>
+                      <FormLabel>Cliente (Lead)</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um projeto" />
-                        </SelectTrigger>
+                        <Input
+                          readOnly
+                          value={
+                            selectedLead
+                              ? `${selectedLead.company} - ${selectedLead.contactName}`
+                              : 'Selecione um projeto para carregar o cliente'
+                          }
+                          className="bg-muted text-muted-foreground"
+                        />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">Nenhum projeto</SelectItem>
-                        {projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id}>
-                            {project.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
               />
             </div>
 
@@ -473,7 +469,7 @@ export function ProposalFormDialog({
                       <SelectContent>
                         {usersList.map((u) => (
                           <SelectItem key={u.id} value={u.id}>
-                            {u.name}
+                            {u.name} {u.cargo ? `(${u.cargo})` : ''}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -484,10 +480,10 @@ export function ProposalFormDialog({
               />
               <FormItem>
                 <FormLabel>Signatário (Cliente)</FormLabel>
-                <div className="mt-2 text-sm p-2 bg-muted rounded-md min-h-10 flex items-center">
+                <div className="mt-2 text-sm p-2 px-3 border bg-muted text-muted-foreground rounded-md min-h-10 flex items-center">
                   {selectedLead
                     ? selectedLead.contactName
-                    : 'Selecione um cliente'}
+                    : 'Selecione um projeto'}
                 </div>
               </FormItem>
             </div>

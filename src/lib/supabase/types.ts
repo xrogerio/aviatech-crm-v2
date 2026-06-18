@@ -105,6 +105,7 @@ export type Database = {
       }
       leads: {
         Row: {
+          cargo: string | null
           cnpj: string
           contato: string
           created_at: string
@@ -118,6 +119,7 @@ export type Database = {
           telefone: string | null
         }
         Insert: {
+          cargo?: string | null
           cnpj?: string
           contato: string
           created_at?: string
@@ -131,6 +133,7 @@ export type Database = {
           telefone?: string | null
         }
         Update: {
+          cargo?: string | null
           cnpj?: string
           contato?: string
           created_at?: string
@@ -238,6 +241,7 @@ export type Database = {
       }
       proposals: {
         Row: {
+          company_id: string | null
           created_at: string
           created_by: string | null
           descricao: string | null
@@ -247,12 +251,14 @@ export type Database = {
           numero: string | null
           observacoes: string | null
           project_id: string | null
+          signatory_id: string | null
           status: string | null
           titulo: string
           validade: string | null
           valor: number | null
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           descricao?: string | null
@@ -262,12 +268,14 @@ export type Database = {
           numero?: string | null
           observacoes?: string | null
           project_id?: string | null
+          signatory_id?: string | null
           status?: string | null
           titulo: string
           validade?: string | null
           valor?: number | null
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           descricao?: string | null
@@ -277,12 +285,20 @@ export type Database = {
           numero?: string | null
           observacoes?: string | null
           project_id?: string | null
+          signatory_id?: string | null
           status?: string | null
           titulo?: string
           validade?: string | null
           valor?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: 'proposals_company_id_fkey'
+            columns: ['company_id']
+            isOneToOne: false
+            referencedRelation: 'companies'
+            referencedColumns: ['id']
+          },
           {
             foreignKeyName: 'proposals_created_by_fkey'
             columns: ['created_by']
@@ -302,6 +318,13 @@ export type Database = {
             columns: ['project_id']
             isOneToOne: false
             referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'proposals_signatory_id_fkey'
+            columns: ['signatory_id']
+            isOneToOne: false
+            referencedRelation: 'users'
             referencedColumns: ['id']
           },
         ]
@@ -370,6 +393,7 @@ export type Database = {
       users: {
         Row: {
           avatar_url: string | null
+          cargo: string | null
           company_id: string | null
           email: string | null
           id: string
@@ -378,6 +402,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          cargo?: string | null
           company_id?: string | null
           email?: string | null
           id: string
@@ -386,6 +411,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          cargo?: string | null
           company_id?: string | null
           email?: string | null
           id?: string

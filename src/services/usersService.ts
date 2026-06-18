@@ -6,6 +6,7 @@ export interface UserProfile {
   email?: string
   name?: string
   company_id?: string | null
+  cargo?: string | null
 }
 
 export const usersService = {
