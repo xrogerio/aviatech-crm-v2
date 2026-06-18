@@ -19,6 +19,7 @@ import {
 import { Plus, Edit, Trash2 } from 'lucide-react'
 import { CompanyFormDialog } from './CompanyFormDialog'
 import { useToast } from '@/hooks/use-toast'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 export function CompanyManagement() {
   const [companies, setCompanies] = useState<Company[]>([])
@@ -100,6 +101,7 @@ export function CompanyManagement() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[80px]">Logo</TableHead>
               <TableHead>Razão Social</TableHead>
               <TableHead>CNPJ</TableHead>
               <TableHead>Responsável</TableHead>
@@ -109,6 +111,17 @@ export function CompanyManagement() {
           <TableBody>
             {companies.map((c) => (
               <TableRow key={c.id}>
+                <TableCell>
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src={c.logo_url || ''}
+                      alt={c.razao_social || 'Empresa'}
+                    />
+                    <AvatarFallback>
+                      {(c.razao_social || 'E').substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </TableCell>
                 <TableCell className="font-medium">{c.razao_social}</TableCell>
                 <TableCell>{c.cnpj || '-'}</TableCell>
                 <TableCell>{c.responsavel_nome || '-'}</TableCell>
@@ -135,7 +148,7 @@ export function CompanyManagement() {
             ))}
             {companies.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-6">
+                <TableCell colSpan={5} className="text-center py-6">
                   Nenhuma empresa encontrada.
                 </TableCell>
               </TableRow>
