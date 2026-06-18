@@ -19,10 +19,16 @@ export interface Proposal {
   validade?: string
   itens?: ProposalItem[]
   project_id?: string | null
+  company_id?: string | null
+  signatory_id?: string | null
+  signatory?: { name: string; cargo: string | null } | null
+  company?: { razao_social: string; cnpj: string | null } | null
   leads?: {
     empresa: string
     contato: string
     email: string
+    cargo: string | null
+    cnpj: string | null
   }
   projects?: {
     name: string
@@ -39,10 +45,20 @@ export const proposalsService = {
         leads (
           empresa,
           contato,
-          email
+          email,
+          cargo,
+          cnpj
         ),
         projects (
           name
+        ),
+        signatory:users!proposals_signatory_id_fkey (
+          name,
+          cargo
+        ),
+        company:companies!proposals_company_id_fkey (
+          razao_social,
+          cnpj
         )
       `,
       )
@@ -59,12 +75,19 @@ export const proposalsService = {
 
     if (!user) throw new Error('User not authenticated')
 
+    const { data: userData } = await supabase
+      .from('users')
+      .select('company_id')
+      .eq('id', user.id)
+      .single()
+
     const { data, error } = await supabase
       .from('proposals')
       .insert([
         {
           ...proposal,
           created_by: user.id,
+          company_id: proposal.company_id || userData?.company_id || null,
         },
       ])
       .select()

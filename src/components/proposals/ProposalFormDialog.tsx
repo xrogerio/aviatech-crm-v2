@@ -34,11 +34,13 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { useLeads } from '@/context/LeadsContext'
 import { Proposal } from '@/services/proposalsService'
 import { projectsService, Project } from '@/services/projectsService'
+import { usersService, UserProfile } from '@/services/usersService'
 
 const proposalSchema = z.object({
   titulo: z.string().min(3, 'O título deve ter pelo menos 3 caracteres'),
   lead_id: z.string().min(1, 'Selecione um lead'),
   project_id: z.string().optional().nullable(),
+  signatory_id: z.string().optional().nullable(),
   descricao: z.string().optional(),
   observacoes: z.string().optional(),
   validade: z.date().optional(),
@@ -71,17 +73,22 @@ export function ProposalFormDialog({
 }: ProposalFormDialogProps) {
   const { leads } = useLeads()
   const [projects, setProjects] = useState<Project[]>([])
+  const [usersList, setUsersList] = useState<UserProfile[]>([])
 
   useEffect(() => {
-    const loadProjects = async () => {
+    const loadData = async () => {
       try {
-        const data = await projectsService.getProjects()
-        setProjects(data)
+        const [projectsData, usersData] = await Promise.all([
+          projectsService.getProjects(),
+          usersService.getUsers(),
+        ])
+        setProjects(projectsData)
+        setUsersList(usersData)
       } catch (error) {
-        console.error('Failed to load projects', error)
+        console.error('Failed to load data', error)
       }
     }
-    if (open) loadProjects()
+    if (open) loadData()
   }, [open])
 
   const form = useForm<ProposalFormValues>({
@@ -90,12 +97,24 @@ export function ProposalFormDialog({
       titulo: '',
       lead_id: '',
       project_id: 'none',
+      signatory_id: '',
       descricao: '',
       observacoes: '',
       status: 'Rascunho',
       itens: [{ description: '', quantity: 1, unitPrice: 0 }],
     },
   })
+
+  const projectId = form.watch('project_id')
+
+  useEffect(() => {
+    if (projectId && projectId !== 'none') {
+      const project = projects.find((p) => p.id === projectId)
+      if (project && project.lead_id) {
+        form.setValue('lead_id', project.lead_id)
+      }
+    }
+  }, [projectId, projects, form])
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -115,6 +134,7 @@ export function ProposalFormDialog({
           titulo: initialData.titulo,
           lead_id: initialData.lead_id || '',
           project_id: initialData.project_id || 'none',
+          signatory_id: initialData.signatory_id || '',
           descricao: initialData.descricao || '',
           observacoes: initialData.observacoes || '',
           validade: initialData.validade
@@ -131,6 +151,7 @@ export function ProposalFormDialog({
           titulo: '',
           lead_id: '',
           project_id: 'none',
+          signatory_id: '',
           descricao: '',
           observacoes: '',
           validade: undefined,
@@ -146,11 +167,15 @@ export function ProposalFormDialog({
     const submissionData = {
       ...values,
       project_id: values.project_id === 'none' ? null : values.project_id,
+      signatory_id: values.signatory_id || null,
       valor: totalValue,
     }
     await onSubmit(submissionData)
     onOpenChange(false)
   }
+
+  const selectedLeadId = form.watch('lead_id')
+  const selectedLead = leads.find((l) => l.id === selectedLeadId)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -428,6 +453,44 @@ export function ProposalFormDialog({
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4 mt-4">
+              <FormField
+                control={form.control}
+                name="signatory_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Signatário (Sua Empresa)</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || ''}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um signatário" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {usersList.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>
+                            {u.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormItem>
+                <FormLabel>Signatário (Cliente)</FormLabel>
+                <div className="mt-2 text-sm p-2 bg-muted rounded-md min-h-10 flex items-center">
+                  {selectedLead
+                    ? selectedLead.contactName
+                    : 'Selecione um cliente'}
+                </div>
+              </FormItem>
+            </div>
 
             <DialogFooter>
               <Button

@@ -33,6 +33,7 @@ const leadSchema = z.object({
   company: z.string().min(2, 'Empresa é obrigatória'),
   cnpj: z.string().optional(),
   contactName: z.string().min(2, 'Nome do contato é obrigatório'),
+  cargo: z.string().optional(),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   phone: z.string().optional(),
   segment: z.string().optional(),
@@ -61,6 +62,7 @@ export function LeadFormDialog({
       company: '',
       cnpj: '',
       contactName: '',
+      cargo: '',
       email: '',
       phone: '',
       segment: '',
@@ -75,6 +77,7 @@ export function LeadFormDialog({
         company: initialData.company,
         cnpj: initialData.cnpj || '',
         contactName: initialData.contactName,
+        cargo: (initialData as any).cargo || '',
         email: initialData.email,
         phone: initialData.phone,
         segment: initialData.segment,
@@ -86,6 +89,7 @@ export function LeadFormDialog({
         company: '',
         cnpj: '',
         contactName: '',
+        cargo: '',
         email: '',
         phone: '',
         segment: '',
@@ -145,20 +149,38 @@ export function LeadFormDialog({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <FormField
+                  control={form.control}
+                  name="contactName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contato</FormLabel>
+                      <FormControl>
+                        <Input placeholder="João Silva" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
-                name="contactName"
+                name="cargo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contato</FormLabel>
+                    <FormLabel>Cargo</FormLabel>
                     <FormControl>
-                      <Input placeholder="João Silva" {...field} />
+                      <Input placeholder="Gerente de TI" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="phone"
@@ -172,9 +194,6 @@ export function LeadFormDialog({
                   </FormItem>
                 )}
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="email"

@@ -111,6 +111,12 @@ export default function Proposals() {
             .status-Enviada { background: #e3f2fd; color: #1565c0; }
             .status-Aprovada { background: #e8f5e9; color: #2e7d32; }
             .status-Rejeitada { background: #ffebee; color: #c62828; }
+            .signatures { display: flex; justify-content: space-between; margin-top: 80px; page-break-inside: avoid; }
+            .signature-block { width: 45%; text-align: center; }
+            .signature-block .line { border-top: 1px solid #000; margin-bottom: 10px; width: 100%; }
+            .signature-block .name { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
+            .signature-block .role { font-size: 14px; color: #555; margin-bottom: 4px; }
+            .signature-block .cnpj { font-size: 12px; color: #888; }
           </style>
         </head>
         <body>
@@ -186,6 +192,21 @@ export default function Proposals() {
           `
               : ''
           }
+
+          <div class="signatures">
+            <div class="signature-block">
+              <div class="line"></div>
+              <div class="name">${proposal.signatory?.name || 'Representante Legal'}</div>
+              <div class="role">${proposal.signatory?.cargo || 'Diretor'}</div>
+              <div class="cnpj">CNPJ: ${proposal.company?.cnpj || 'Não informado'}</div>
+            </div>
+            <div class="signature-block">
+              <div class="line"></div>
+              <div class="name">${proposal.leads?.contato || 'Cliente'}</div>
+              <div class="role">${proposal.leads?.cargo || 'Representante'}</div>
+              <div class="cnpj">CNPJ: ${proposal.leads?.cnpj || 'Não informado'}</div>
+            </div>
+          </div>
 
           <div class="footer">
             <p>Este documento foi gerado automaticamente pelo sistema ADAPTΔCRM.</p>

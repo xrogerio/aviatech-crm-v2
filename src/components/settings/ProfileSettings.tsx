@@ -26,6 +26,7 @@ export function ProfileSettings() {
   // Profile
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [cargo, setCargo] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   // Password
@@ -37,12 +38,13 @@ export function ProfileSettings() {
       setEmail(user.email || '')
       supabase
         .from('users')
-        .select('name, avatar_url')
+        .select('name, avatar_url, cargo')
         .eq('id', user.id)
         .single()
         .then(({ data }) => {
           if (data) {
             if (data.name) setName(data.name)
+            if (data.cargo) setCargo(data.cargo)
             if ((data as any).avatar_url) setAvatarUrl((data as any).avatar_url)
           }
         })
@@ -112,10 +114,14 @@ export function ProfileSettings() {
         if (authError) throw authError
       }
 
-      if (name) {
+      const dbUpdates: any = {}
+      if (name) dbUpdates.name = name
+      if (cargo !== undefined) dbUpdates.cargo = cargo
+
+      if (Object.keys(dbUpdates).length > 0) {
         const { error: dbError } = await supabase
           .from('users')
-          .update({ name })
+          .update(dbUpdates)
           .eq('id', user.id)
 
         if (dbError) throw dbError
@@ -244,14 +250,25 @@ export function ProfileSettings() {
           </div>
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome completo</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Seu nome"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome completo</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Seu nome"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cargo">Cargo</Label>
+                <Input
+                  id="cargo"
+                  value={cargo}
+                  onChange={(e) => setCargo(e.target.value)}
+                  placeholder="Ex: Diretor Comercial"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
