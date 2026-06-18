@@ -467,11 +467,13 @@ export function ProposalFormDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {usersList.map((u) => (
-                          <SelectItem key={u.id} value={u.id}>
-                            {u.name} {u.cargo ? `(${u.cargo})` : ''}
-                          </SelectItem>
-                        ))}
+                        {usersList
+                          .filter((u) => u.role !== 'admin')
+                          .map((u) => (
+                            <SelectItem key={u.id} value={u.id}>
+                              {u.name} {u.cargo ? `(${u.cargo})` : ''}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
