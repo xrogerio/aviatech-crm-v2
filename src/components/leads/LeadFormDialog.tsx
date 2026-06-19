@@ -77,7 +77,7 @@ export function LeadFormDialog({
         company: initialData.company,
         cnpj: initialData.cnpj || '',
         contactName: initialData.contactName,
-        cargo: (initialData as any).cargo || '',
+        cargo: initialData.cargo || '',
         email: initialData.email,
         phone: initialData.phone,
         segment: initialData.segment,

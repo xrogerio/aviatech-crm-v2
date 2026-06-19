@@ -23,6 +23,7 @@ export interface Lead {
   company: string
   cnpj?: string
   contactName: string
+  cargo?: string
   email: string
   phone: string
   segment: string
@@ -77,6 +78,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
           company: dbLead.empresa,
           cnpj: dbLead.cnpj || '',
           contactName: dbLead.contato,
+          cargo: dbLead.cargo || '',
           email: dbLead.email || '',
           phone: dbLead.telefone || '',
           segment: dbLead.segmento || '',
@@ -236,6 +238,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
         empresa: newLead.company,
         cnpj: newLead.cnpj || '',
         contato: newLead.contactName,
+        cargo: newLead.cargo || null,
         email: newLead.email,
         telefone: newLead.phone,
         segmento: newLead.segment,
@@ -259,6 +262,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
           company: data.empresa,
           cnpj: data.cnpj || '',
           contactName: data.contato,
+          cargo: data.cargo || '',
           email: data.email || '',
           phone: data.telefone || '',
           segment: data.segmento || '',
@@ -295,6 +299,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       if (updates.cnpj !== undefined) dbUpdates.cnpj = updates.cnpj
       if (updates.contactName !== undefined)
         dbUpdates.contato = updates.contactName
+      if (updates.cargo !== undefined) dbUpdates.cargo = updates.cargo
       if (updates.email !== undefined) dbUpdates.email = updates.email
       if (updates.phone !== undefined) dbUpdates.telefone = updates.phone
       if (updates.segment !== undefined) dbUpdates.segmento = updates.segment
