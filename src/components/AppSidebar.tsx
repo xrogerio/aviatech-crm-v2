@@ -29,7 +29,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export function AppSidebar() {
   const location = useLocation()
-  const { role, organizationName, loading } = useAuth()
+  const { role, organizationName, organizationLogo, loading } = useAuth()
 
   const menuItems = [
     {
@@ -90,11 +90,23 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="h-16 flex items-center justify-center border-b border-sidebar-border/50">
         <div className="flex items-center gap-2 font-bold text-xl px-2 w-full overflow-hidden">
-          <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
-            <span className="text-primary-foreground text-xs">A</span>
-          </div>
-          <span className="group-data-[collapsible=icon]:hidden transition-all duration-200">
-            ADAPTΔCRM
+          {organizationLogo ? (
+            <div className="h-8 w-8 shrink-0 flex items-center justify-center overflow-hidden rounded-lg">
+              <img
+                src={organizationLogo}
+                alt={organizationName || 'Logo'}
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
+          ) : (
+            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
+              <span className="text-primary-foreground text-xs uppercase">
+                {organizationName ? organizationName.charAt(0) : 'A'}
+              </span>
+            </div>
+          )}
+          <span className="group-data-[collapsible=icon]:hidden transition-all duration-200 truncate">
+            {organizationName || 'ADAPTΔCRM'}
           </span>
         </div>
       </SidebarHeader>
