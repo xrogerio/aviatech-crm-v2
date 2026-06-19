@@ -115,6 +115,8 @@ export function ProposalFormDialog({
       } else {
         form.setValue('lead_id', '')
       }
+    } else {
+      form.setValue('lead_id', '')
     }
   }, [projectId, projects, form])
 
@@ -253,7 +255,7 @@ export function ProposalFormDialog({
                           readOnly
                           value={
                             selectedLead
-                              ? `${selectedLead.company} - ${selectedLead.contactName}`
+                              ? `${selectedLead.empresa || selectedLead.company || ''} - ${selectedLead.contato || selectedLead.contactName || ''}`
                               : 'Selecione um projeto para carregar o cliente'
                           }
                           className="bg-muted text-muted-foreground"
@@ -484,7 +486,7 @@ export function ProposalFormDialog({
                 <FormLabel>Signatário (Cliente)</FormLabel>
                 <div className="mt-2 text-sm p-2 px-3 border bg-muted text-muted-foreground rounded-md min-h-10 flex items-center">
                   {selectedLead
-                    ? selectedLead.contactName
+                    ? selectedLead.contato || selectedLead.contactName || ''
                     : 'Selecione um projeto'}
                 </div>
               </FormItem>
