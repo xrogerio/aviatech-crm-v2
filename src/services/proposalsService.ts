@@ -12,6 +12,7 @@ export interface Proposal {
   created_by: string
   lead_id: string | null
   titulo: string
+  numero?: string | null
   status: 'Rascunho' | 'Enviada' | 'Aprovada' | 'Rejeitada'
   valor: number
   descricao?: string

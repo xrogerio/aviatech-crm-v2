@@ -124,6 +124,7 @@ export default function Proposals() {
           <div class="header">
             <div class="logo">ADAPTΔCRM</div>
             <div class="meta">
+              ${proposal.numero ? `<div style="font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #1a1a1a;">Proposta Nº ${proposal.numero}</div>` : ''}
               <div>Data: ${new Date().toLocaleDateString('pt-BR')}</div>
               <div>Validade: ${proposal.validade ? new Date(proposal.validade).toLocaleDateString('pt-BR') : 'N/A'}</div>
               <div class="badge status-${proposal.status}">${proposal.status}</div>

@@ -213,6 +213,17 @@ export function ProposalFormDialog({
               )}
             />
 
+            <FormItem>
+              <FormLabel>Número da Proposta</FormLabel>
+              <FormControl>
+                <Input
+                  readOnly
+                  value={initialData?.numero || 'Gerado automaticamente'}
+                  className="bg-muted text-muted-foreground font-mono md:w-1/2"
+                />
+              </FormControl>
+            </FormItem>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
