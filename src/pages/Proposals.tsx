@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { proposalsService, Proposal } from '@/services/proposalsService'
 import { ProposalFormDialog } from '@/components/proposals/ProposalFormDialog'
+import { useAuth } from '@/context/AuthContext'
 
 export default function Proposals() {
   const [proposals, setProposals] = useState<Proposal[]>([])
@@ -29,6 +30,7 @@ export default function Proposals() {
   const [searchTerm, setSearchTerm] = useState('')
   const [editingProposal, setEditingProposal] = useState<Proposal | null>(null)
   const { toast } = useToast()
+  const { organizationName, organizationLogo } = useAuth()
 
   const fetchProposals = async () => {
     try {
@@ -94,7 +96,8 @@ export default function Proposals() {
           <style>
             body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
             .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
-            .logo { font-size: 24px; font-weight: bold; color: #000; }
+            .logo { font-size: 24px; font-weight: bold; color: #000; display: flex; align-items: center; gap: 10px; }
+            .logo img { max-height: 48px; max-width: 200px; object-fit: contain; }
             .meta { text-align: right; font-size: 14px; color: #666; }
             .info-section { display: flex; justify-content: space-between; margin-bottom: 40px; }
             .project-info { text-align: right; }
@@ -122,7 +125,22 @@ export default function Proposals() {
         </head>
         <body>
           <div class="header">
-            <div class="logo">ADAPTΔCRM</div>
+            <div class="logo">
+              ${
+                proposal.company?.logo_url || organizationLogo
+                  ? `<img src="${proposal.company?.logo_url || organizationLogo}" alt="${proposal.company?.razao_social || organizationName || 'Logo'}" />`
+                  : ''
+              }
+              ${
+                !(proposal.company?.logo_url || organizationLogo) &&
+                (proposal.company?.razao_social || organizationName)
+                  ? `<span>${proposal.company?.razao_social || organizationName}</span>`
+                  : !(proposal.company?.logo_url || organizationLogo) &&
+                      !(proposal.company?.razao_social || organizationName)
+                    ? `<span>ADAPTΔCRM</span>`
+                    : ''
+              }
+            </div>
             <div class="meta">
               ${proposal.numero ? `<div style="font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #1a1a1a;">Proposta Nº ${proposal.numero}</div>` : ''}
               <div>Data: ${new Date().toLocaleDateString('pt-BR')}</div>

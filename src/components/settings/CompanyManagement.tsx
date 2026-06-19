@@ -20,12 +20,14 @@ import { Plus, Edit, Trash2 } from 'lucide-react'
 import { CompanyFormDialog } from './CompanyFormDialog'
 import { useToast } from '@/hooks/use-toast'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useAuth } from '@/context/AuthContext'
 
 export function CompanyManagement() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
   const { toast } = useToast()
+  const { organizationId, refreshProfile } = useAuth()
 
   const loadCompanies = async () => {
     try {
@@ -64,6 +66,9 @@ export function CompanyManagement() {
       if (editingCompany) {
         await companiesService.updateCompany(editingCompany.id, data)
         toast({ title: 'Empresa atualizada com sucesso' })
+        if (editingCompany.id === organizationId) {
+          await refreshProfile()
+        }
       } else {
         await companiesService.createCompany(data)
         toast({ title: 'Empresa criada com sucesso' })
