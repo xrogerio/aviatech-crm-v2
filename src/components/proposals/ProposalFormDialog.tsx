@@ -50,7 +50,7 @@ const proposalSchema = z.object({
       z.object({
         description: z.string().min(1, 'Descrição do item obrigatória'),
         quantity: z.coerce.number().min(1, 'Quantidade mínima é 1'),
-        unitPrice: z.coerce.number().min(0, 'Valor unitário inválido'),
+        unitPrice: z.coerce.number(),
       }),
     )
     .min(1, 'Adicione pelo menos um item à proposta'),
@@ -406,12 +406,7 @@ export function ProposalFormDialog({
                               Valor Unit.
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                {...field}
-                              />
+                              <Input type="number" step="0.01" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

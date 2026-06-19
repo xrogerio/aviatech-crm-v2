@@ -31,78 +31,7 @@ import { supabase } from '@/lib/supabase/client'
 
 export function AppSidebar() {
   const location = useLocation()
-  const {
-    role,
-    organizationName: contextOrgName,
-    organizationLogo: contextOrgLogo,
-    loading,
-    user,
-  } = useAuth()
-
-  const [orgName, setOrgName] = useState(contextOrgName)
-  const [orgLogo, setOrgLogo] = useState(contextOrgLogo)
-
-  useEffect(() => {
-    if (contextOrgName) setOrgName(contextOrgName)
-    if (contextOrgLogo) setOrgLogo(contextOrgLogo)
-  }, [contextOrgName, contextOrgLogo])
-
-  useEffect(() => {
-    if (!user?.id) return
-
-    let companyId: string | null = null
-    let subscription: any
-
-    const loadCompany = async () => {
-      const { data: userData } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', user.id)
-        .single()
-
-      if (userData?.company_id) {
-        companyId = userData.company_id
-
-        const { data: companyData } = await supabase
-          .from('companies')
-          .select('razao_social, logo_url')
-          .eq('id', companyId)
-          .single()
-
-        if (companyData) {
-          setOrgName(companyData.razao_social)
-          setOrgLogo(companyData.logo_url)
-        }
-
-        subscription = supabase
-          .channel('sidebar_company_updates')
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'companies',
-              filter: `id=eq.${companyId}`,
-            },
-            (payload) => {
-              if (payload.new) {
-                setOrgName(payload.new.razao_social)
-                setOrgLogo(payload.new.logo_url)
-              }
-            },
-          )
-          .subscribe()
-      }
-    }
-
-    loadCompany()
-
-    return () => {
-      if (subscription) {
-        subscription.unsubscribe()
-      }
-    }
-  }, [user?.id])
+  const { role, organizationName, organizationLogo, loading } = useAuth()
 
   const menuItems = [
     {
@@ -163,22 +92,22 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="h-16 flex items-center justify-center border-b border-sidebar-border/50">
         <div className="flex items-center gap-2 font-bold text-xl px-2 w-full overflow-hidden">
-          {loading && !orgName && !orgLogo ? (
+          {loading && !organizationName && !organizationLogo ? (
             <Skeleton className="h-8 w-full mx-2" />
           ) : (
             <>
-              {orgLogo && (
+              {organizationLogo && (
                 <div className="h-8 w-8 shrink-0 flex items-center justify-center overflow-hidden rounded-lg">
                   <img
-                    src={orgLogo}
-                    alt={orgName || 'Logo'}
+                    src={organizationLogo}
+                    alt={organizationName || 'Logo'}
                     className="max-h-full max-w-full object-contain"
                   />
                 </div>
               )}
-              {orgName && (
+              {organizationName && (
                 <span className="group-data-[collapsible=icon]:hidden transition-all duration-200 truncate">
-                  {orgName}
+                  {organizationName}
                 </span>
               )}
             </>
@@ -219,18 +148,18 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border/50 p-4">
         {/* Organization and Role Info */}
         <div className="flex flex-col gap-2 mb-2 group-data-[collapsible=icon]:hidden">
-          {loading && !orgName ? (
+          {loading && !organizationName ? (
             <div className="space-y-1.5">
               <Skeleton className="h-4 w-[80%]" />
               <Skeleton className="h-3 w-[60%]" />
             </div>
           ) : (
             <div className="space-y-1.5">
-              {orgName && (
-                <div className="text-sm truncate" title={orgName}>
+              {organizationName && (
+                <div className="text-sm truncate" title={organizationName}>
                   <span className="text-muted-foreground mr-1">Empresa:</span>
                   <span className="font-medium text-sidebar-foreground">
-                    {orgName}
+                    {organizationName}
                   </span>
                 </div>
               )}
@@ -249,7 +178,7 @@ export function AppSidebar() {
         </div>
 
         {/* Separator only if info is displayed */}
-        {(!loading || orgName) && (orgName || role) && (
+        {(!loading || organizationName) && (organizationName || role) && (
           <div className="h-px bg-sidebar-border/50 my-1 group-data-[collapsible=icon]:hidden" />
         )}
 

@@ -16,6 +16,7 @@ interface AuthContextType {
   organizationId: string | null
   organizationName: string | null
   organizationLogo: string | null
+  organizationCnpj: string | null
   name: string | null
   avatarUrl: string | null
   signUp: (
@@ -48,6 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [organizationId, setOrganizationId] = useState<string | null>(null)
   const [organizationName, setOrganizationName] = useState<string | null>(null)
   const [organizationLogo, setOrganizationLogo] = useState<string | null>(null)
+  const [organizationCnpj, setOrganizationCnpj] = useState<string | null>(null)
   const [name, setName] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -57,7 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase
         .from('users')
         .select(
-          'role, company_id, name, avatar_url, companies(razao_social, logo_url)',
+          'role, company_id, name, avatar_url, companies(razao_social, logo_url, cnpj)',
         )
         .eq('id', userId)
         .single()
@@ -70,6 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setOrganizationId(data?.company_id)
       setOrganizationName((data?.companies as any)?.razao_social || null)
       setOrganizationLogo((data?.companies as any)?.logo_url || null)
+      setOrganizationCnpj((data?.companies as any)?.cnpj || null)
       setName(data?.name || null)
       setAvatarUrl((data as any)?.avatar_url || null)
       return data?.role as 'vendedor' | 'gerente' | 'admin'
@@ -94,6 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setOrganizationId(null)
         setOrganizationName(null)
         setOrganizationLogo(null)
+        setOrganizationCnpj(null)
         setName(null)
         setAvatarUrl(null)
       }
@@ -193,6 +197,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setOrganizationId(null)
       setOrganizationName(null)
       setOrganizationLogo(null)
+      setOrganizationCnpj(null)
       setName(null)
       setAvatarUrl(null)
     }
@@ -213,6 +218,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     organizationId,
     organizationName,
     organizationLogo,
+    organizationCnpj,
     name,
     avatarUrl,
     signUp,

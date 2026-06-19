@@ -31,48 +31,7 @@ export default function Proposals() {
   const [searchTerm, setSearchTerm] = useState('')
   const [editingProposal, setEditingProposal] = useState<Proposal | null>(null)
   const { toast } = useToast()
-  const {
-    organizationName: contextOrgName,
-    organizationLogo: contextOrgLogo,
-    user,
-  } = useAuth()
-
-  const [orgName, setOrgName] = useState(contextOrgName)
-  const [orgLogo, setOrgLogo] = useState(contextOrgLogo)
-  const [orgCnpj, setOrgCnpj] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (contextOrgName) setOrgName(contextOrgName)
-    if (contextOrgLogo) setOrgLogo(contextOrgLogo)
-  }, [contextOrgName, contextOrgLogo])
-
-  useEffect(() => {
-    if (!user?.id) return
-
-    const fetchCompanyData = async () => {
-      const { data: userData } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', user.id)
-        .single()
-
-      if (userData?.company_id) {
-        const { data: companyData } = await supabase
-          .from('companies')
-          .select('razao_social, logo_url, cnpj')
-          .eq('id', userData.company_id)
-          .single()
-
-        if (companyData) {
-          setOrgName(companyData.razao_social)
-          setOrgLogo(companyData.logo_url)
-          setOrgCnpj(companyData.cnpj)
-        }
-      }
-    }
-
-    fetchCompanyData()
-  }, [user?.id])
+  const { organizationName, organizationLogo, organizationCnpj } = useAuth()
 
   const fetchProposals = async () => {
     try {
@@ -172,19 +131,19 @@ export default function Proposals() {
           <div class="header">
             <div class="logo">
               ${
-                proposal.company?.logo_url || orgLogo
-                  ? `<img src="${proposal.company?.logo_url || orgLogo}" alt="Logo" />`
+                proposal.company?.logo_url || organizationLogo
+                  ? `<img src="${proposal.company?.logo_url || organizationLogo}" alt="Logo" />`
                   : ''
               }
               <div class="company-info">
                 ${
-                  proposal.company?.razao_social || orgName
-                    ? `<span class="company-name">${proposal.company?.razao_social || orgName}</span>`
+                  proposal.company?.razao_social || organizationName
+                    ? `<span class="company-name">${proposal.company?.razao_social || organizationName}</span>`
                     : ''
                 }
                 ${
-                  proposal.company?.cnpj || orgCnpj
-                    ? `<span class="company-cnpj">CNPJ: ${proposal.company?.cnpj || orgCnpj}</span>`
+                  proposal.company?.cnpj || organizationCnpj
+                    ? `<span class="company-cnpj">CNPJ: ${proposal.company?.cnpj || organizationCnpj}</span>`
                     : ''
                 }
               </div>
@@ -266,8 +225,8 @@ export default function Proposals() {
               <div class="line"></div>
               <div class="name">${proposal.signatory?.name || '______________________'}</div>
               <div class="role">${proposal.signatory?.cargo || ''}</div>
-              <div class="company">${proposal.company?.razao_social || orgName || 'Sua Empresa'}</div>
-              <div class="cnpj">CNPJ: ${proposal.company?.cnpj || orgCnpj || 'Não informado'}</div>
+              <div class="company">${proposal.company?.razao_social || organizationName || 'Sua Empresa'}</div>
+              <div class="cnpj">CNPJ: ${proposal.company?.cnpj || organizationCnpj || 'Não informado'}</div>
             </div>
             <div class="signature-block">
               <div class="line"></div>
