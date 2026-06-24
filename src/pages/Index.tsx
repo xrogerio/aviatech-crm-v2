@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useLeads } from '@/context/LeadsContext'
 import { useAuth } from '@/context/AuthContext'
 import { projectsService, Project } from '@/services/projectsService'
+import { proposalsService, Proposal } from '@/services/proposalsService'
 import { tasksService, Task } from '@/services/tasksService'
 import {
   Briefcase,
@@ -23,20 +24,37 @@ import {
   Calendar,
   ArrowRight,
   CheckCircle2,
+  DollarSign,
 } from 'lucide-react'
 import { isPast, addDays, parseISO, format, isBefore } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
+
+const chartConfig = {
+  valor: {
+    label: 'Receita',
+    color: 'hsl(var(--primary))',
+  },
+} satisfies ChartConfig
 
 export default function Index() {
   const { leads } = useLeads()
   const { user, role } = useAuth()
   const [projects, setProjects] = useState<Project[]>([])
+  const [proposals, setProposals] = useState<Proposal[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [loadingTasks, setLoadingTasks] = useState(true)
 
   useEffect(() => {
     projectsService.getProjects().then(setProjects).catch(console.error)
+    proposalsService.getProposals().then(setProposals).catch(console.error)
   }, [])
 
   useEffect(() => {
@@ -101,6 +119,43 @@ export default function Index() {
     return !isPast(prazo) && isBefore(prazo, next7Days)
   })
 
+  const validProjectStatuses = [
+    'Qualificação',
+    'Proposta Enviada',
+    'Negociação',
+  ]
+  const validProjects = projects.filter((p) =>
+    validProjectStatuses.includes(p.status),
+  )
+  const validProjectIds = validProjects.map((p) => p.id)
+
+  const estimatedProposals = proposals.filter(
+    (p) =>
+      p.status === 'Enviada' &&
+      p.project_id &&
+      validProjectIds.includes(p.project_id),
+  )
+
+  const totalEstimatedRevenue = estimatedProposals.reduce(
+    (acc, curr) => acc + (curr.valor || 0),
+    0,
+  )
+
+  const chartData = validProjectStatuses.map((status) => {
+    const pIds = projects.filter((p) => p.status === status).map((p) => p.id)
+    const total = proposals
+      .filter(
+        (p) =>
+          p.status === 'Enviada' && p.project_id && pIds.includes(p.project_id),
+      )
+      .reduce((acc, curr) => acc + (curr.valor || 0), 0)
+
+    return {
+      status,
+      valor: total,
+    }
+  })
+
   return (
     <div className="space-y-6 animate-fade-in pb-8">
       <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -153,6 +208,83 @@ export default function Index() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{conversionRate}%</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4">
+        <Card className="col-span-full lg:col-span-7">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Receita Estimada
+            </CardTitle>
+            <CardDescription>
+              Valor total de propostas enviadas nos projetos em andamento. Total
+              acumulado:{' '}
+              <span className="font-bold text-foreground">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(totalEstimatedRevenue)}
+              </span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {chartData.every((d) => d.valor === 0) ? (
+              <div className="flex flex-col items-center justify-center h-[300px] text-center border rounded-lg border-dashed">
+                <DollarSign className="h-10 w-10 text-muted-foreground mb-4 opacity-50" />
+                <p className="text-sm font-medium">Nenhuma receita estimada</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Não há propostas enviadas nas fases ativas do funil.
+                </p>
+              </div>
+            ) : (
+              <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="status"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={12}
+                    fontSize={12}
+                  />
+                  <YAxis
+                    tickFormatter={(value) =>
+                      `R$ ${value >= 1000 ? value / 1000 + 'k' : value}`
+                    }
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={12}
+                    fontSize={12}
+                    width={80}
+                  />
+                  <ChartTooltip
+                    cursor={{ fill: 'var(--color-valor)', opacity: 0.1 }}
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value) =>
+                          new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          }).format(value as number)
+                        }
+                      />
+                    }
+                  />
+                  <Bar
+                    dataKey="valor"
+                    fill="var(--color-valor)"
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={60}
+                  />
+                </BarChart>
+              </ChartContainer>
+            )}
           </CardContent>
         </Card>
       </div>
