@@ -156,6 +156,28 @@ export default function Index() {
     }
   })
 
+  const closedProjectIds = projects
+    .filter((p) => p.status === 'Fechado')
+    .map((p) => p.id)
+  const convertedProposals = proposals.filter(
+    (p) =>
+      p.status === 'Aprovada' &&
+      p.project_id &&
+      closedProjectIds.includes(p.project_id),
+  )
+
+  const totalConvertedRevenue = convertedProposals.reduce(
+    (acc, curr) => acc + (curr.valor || 0),
+    0,
+  )
+
+  const convertedChartData = [
+    {
+      status: 'Fechado',
+      valor: totalConvertedRevenue,
+    },
+  ]
+
   return (
     <div className="space-y-6 animate-fade-in pb-8">
       <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -212,8 +234,8 @@ export default function Index() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4">
-        <Card className="col-span-full lg:col-span-7">
+      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2 mt-4">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-primary" />
@@ -243,6 +265,81 @@ export default function Index() {
               <ChartContainer config={chartConfig} className="h-[300px] w-full">
                 <BarChart
                   data={chartData}
+                  margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="status"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={12}
+                    fontSize={12}
+                  />
+                  <YAxis
+                    tickFormatter={(value) =>
+                      `R$ ${value >= 1000 ? value / 1000 + 'k' : value}`
+                    }
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={12}
+                    fontSize={12}
+                    width={80}
+                  />
+                  <ChartTooltip
+                    cursor={{ fill: 'var(--color-valor)', opacity: 0.1 }}
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value) =>
+                          new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          }).format(value as number)
+                        }
+                      />
+                    }
+                  />
+                  <Bar
+                    dataKey="valor"
+                    fill="var(--color-valor)"
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={60}
+                  />
+                </BarChart>
+              </ChartContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-primary" />
+              Total Convertido
+            </CardTitle>
+            <CardDescription>
+              Valor total de propostas aprovadas em negócios fechados. Total
+              acumulado:{' '}
+              <span className="font-bold text-foreground">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(totalConvertedRevenue)}
+              </span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {convertedChartData.every((d) => d.valor === 0) ? (
+              <div className="flex flex-col items-center justify-center h-[300px] text-center border rounded-lg border-dashed">
+                <CheckCircle className="h-10 w-10 text-muted-foreground mb-4 opacity-50" />
+                <p className="text-sm font-medium">Nenhum valor convertido</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Não há propostas aprovadas em negócios fechados.
+                </p>
+              </div>
+            ) : (
+              <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                <BarChart
+                  data={convertedChartData}
                   margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
                 >
                   <CartesianGrid vertical={false} strokeDasharray="3 3" />
