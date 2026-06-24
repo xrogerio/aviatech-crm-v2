@@ -50,6 +50,7 @@ export default function Index() {
 
         const excludedStatuses = [
           'completed',
+          'concluido',
           'concluida',
           'concluído',
           'rejeitada',
