@@ -65,14 +65,21 @@ export default function Proposals() {
 
   const handleFormSubmit = async (values: any) => {
     try {
+      const payload = { ...values }
+      if (payload.validade instanceof Date) {
+        payload.validade = payload.validade.toISOString()
+      } else if (payload.validade === undefined) {
+        payload.validade = null
+      }
+
       if (editingProposal) {
-        await proposalsService.updateProposal(editingProposal.id, values)
+        await proposalsService.updateProposal(editingProposal.id, payload)
         toast({
           title: 'Proposta atualizada',
           description: 'As alterações foram salvas com sucesso.',
         })
       } else {
-        await proposalsService.createProposal(values)
+        await proposalsService.createProposal(payload)
         toast({
           title: 'Proposta criada',
           description: 'A nova proposta foi registrada com sucesso.',
@@ -85,6 +92,7 @@ export default function Proposals() {
         description: error.message,
         variant: 'destructive',
       })
+      throw error
     }
   }
 

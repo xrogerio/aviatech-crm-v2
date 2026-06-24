@@ -127,7 +127,8 @@ export function ProposalFormDialog({
 
   const watchedItems = form.watch('itens')
   const totalValue = watchedItems?.reduce(
-    (acc, item) => acc + (item.quantity || 0) * (item.unitPrice || 0),
+    (acc, item) =>
+      acc + Number(item.quantity || 0) * Number(item.unitPrice || 0),
     0,
   )
 
@@ -167,13 +168,17 @@ export function ProposalFormDialog({
   }, [open, initialData, form])
 
   const handleSubmit = async (values: ProposalFormValues) => {
-    // Inject calculated total value
-    const submissionData = {
-      ...values,
-      valor: totalValue,
+    try {
+      // Inject calculated total value
+      const submissionData = {
+        ...values,
+        valor: totalValue,
+      }
+      await onSubmit(submissionData)
+      onOpenChange(false)
+    } catch (error) {
+      // Error is caught by the parent to show toast, we just keep the modal open
     }
-    await onSubmit(submissionData)
-    onOpenChange(false)
   }
 
   const selectedLeadId = form.watch('lead_id')
