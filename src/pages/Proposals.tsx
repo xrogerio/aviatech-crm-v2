@@ -246,7 +246,7 @@ export default function Proposals() {
           </div>
 
           <div class="footer">
-            <p>Este documento foi gerado automaticamente pelo sistema ADAPTΔCRM.</p>
+            <p>Este documento foi gerado automaticamente pelo sistema.</p>
           </div>
 
           <script>
