@@ -65,12 +65,6 @@ export function AppSidebar() {
       roles: ['admin', 'gerente', 'vendedor'],
     },
     {
-      icon: Clock,
-      label: 'Prazos',
-      path: '/deadlines',
-      roles: ['admin', 'gerente', 'vendedor'],
-    },
-    {
       icon: FileText,
       label: 'Propostas',
       path: '/propostas',

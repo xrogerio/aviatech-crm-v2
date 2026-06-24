@@ -19,7 +19,6 @@ import LandingPage from './pages/LandingPage'
 import Layout from './components/Layout'
 import Settings from './pages/Settings'
 import Profile from './pages/Profile'
-import Deadlines from './pages/Deadlines'
 import { ThemeProvider } from '@/components/theme-provider'
 
 const App = () => (
@@ -49,7 +48,6 @@ const App = () => (
                   <Route path="/usuarios" element={<Users />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/profile" element={<Profile />} />
-                  <Route path="/deadlines" element={<Deadlines />} />
                 </Route>
               </Route>
 
