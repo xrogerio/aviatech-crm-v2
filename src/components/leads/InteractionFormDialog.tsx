@@ -42,7 +42,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>
 
 interface InteractionFormDialogProps {
-  leadId: string
+  leadId?: string
+  projectId?: string
   interaction?: Interaction | null
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -51,6 +52,7 @@ interface InteractionFormDialogProps {
 
 export function InteractionFormDialog({
   leadId,
+  projectId,
   interaction,
   open,
   onOpenChange,
@@ -91,11 +93,13 @@ export function InteractionFormDialog({
         await interactionsService.updateInteraction(interaction.id, {
           tipo: values.tipo,
           descricao: values.descricao,
+          project_id: projectId,
         })
         toast({ title: 'Interação atualizada com sucesso' })
       } else {
         await interactionsService.createInteraction({
-          lead_id: leadId,
+          lead_id: leadId === 'unassigned' ? null : leadId,
+          project_id: projectId,
           tipo: values.tipo,
           descricao: values.descricao,
           user_id: user?.id,
