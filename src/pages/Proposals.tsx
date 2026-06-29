@@ -114,7 +114,7 @@ export default function Proposals() {
             .info-section { display: flex; justify-content: space-between; margin-bottom: 40px; }
             .project-info { text-align: right; }
             .title { font-size: 28px; font-weight: bold; margin-bottom: 20px; color: #1a1a1a; }
-            .description { margin-bottom: 30px; line-height: 1.6; }
+            .description { margin-bottom: 30px; line-height: 1.6; text-align: justify; }
             table { w-full; width: 100%; border-collapse: collapse; margin-bottom: 30px; }
             th { text-align: left; border-bottom: 2px solid #ddd; padding: 10px; background: #f9f9f9; }
             td { border-bottom: 1px solid #ddd; padding: 10px; }
