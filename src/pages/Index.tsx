@@ -64,7 +64,7 @@ export default function Index() {
         setLoadingTasks(true)
         const fetchUserId =
           role === 'admin' || role === 'gerente' ? undefined : user.id
-        const allTasks = await tasksService.getTasks(fetchUserId)
+        const allTasks = await tasksService.getTasks(fetchUserId, true)
 
         const excludedStatuses = [
           'completed',

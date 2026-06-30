@@ -27,7 +27,7 @@ export const tasksService = {
     return data as Task[]
   },
 
-  async getTasks(userId?: string): Promise<Task[]> {
+  async getTasks(userId?: string, excludeCompleted?: boolean): Promise<Task[]> {
     let query = supabase
       .from('tasks')
       .select('*, leads(empresa), projects(name)')
@@ -35,6 +35,10 @@ export const tasksService = {
 
     if (userId) {
       query = query.eq('user_id', userId)
+    }
+
+    if (excludeCompleted) {
+      query = query.neq('status', 'Concluída')
     }
 
     const { data, error } = await query
