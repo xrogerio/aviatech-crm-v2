@@ -281,9 +281,7 @@ export default function Users() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9 border">
-                          <AvatarImage
-                            src={`https://img.usecurling.com/ppl/thumbnail?gender=${getGender(user.id)}&seed=${user.id}`}
-                          />
+                          <AvatarImage src={user.avatar_url || undefined} />
                           <AvatarFallback className="bg-primary/10">
                             {user.name ? (
                               user.name.substring(0, 2).toUpperCase()

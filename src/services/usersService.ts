@@ -7,6 +7,7 @@ export interface UserProfile {
   name?: string
   company_id?: string | null
   cargo?: string | null
+  avatar_url?: string | null
 }
 
 export const usersService = {
