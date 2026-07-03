@@ -162,7 +162,7 @@ export function GeneralSettings() {
         </CardHeader>
         <CardContent>
           <RadioGroup
-            defaultValue={theme}
+            value={theme}
             onValueChange={(value) =>
               setTheme(value as 'light' | 'dark' | 'system')
             }
