@@ -19,44 +19,40 @@ import LandingPage from './pages/LandingPage'
 import Layout from './components/Layout'
 import Settings from './pages/Settings'
 import Profile from './pages/Profile'
-import { ThemeProvider } from '@/components/theme-provider'
-
 const App = () => (
   <BrowserRouter
     future={{ v7_startTransition: false, v7_relativeSplatPath: false }}
   >
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <AuthProvider>
-        <LeadsProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              {/* Landing Page Route */}
-              <Route path="/adapta" element={<LandingPage />} />
+    <AuthProvider>
+      <LeadsProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            {/* Landing Page Route */}
+            <Route path="/adapta" element={<LandingPage />} />
 
-              <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login />} />
 
-              <Route element={<ProtectedRoute />}>
-                <Route element={<Layout />}>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/leads" element={<Leads />} />
-                  <Route path="/projetos" element={<Projects />} />
-                  <Route path="/pipeline" element={<Pipeline />} />
-                  <Route path="/tarefas" element={<Activities />} />
-                  <Route path="/propostas" element={<Proposals />} />
-                  <Route path="/usuarios" element={<Users />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/profile" element={<Profile />} />
-                </Route>
+            <Route element={<ProtectedRoute />}>
+              <Route element={<Layout />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/leads" element={<Leads />} />
+                <Route path="/projetos" element={<Projects />} />
+                <Route path="/pipeline" element={<Pipeline />} />
+                <Route path="/tarefas" element={<Activities />} />
+                <Route path="/propostas" element={<Proposals />} />
+                <Route path="/usuarios" element={<Users />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/profile" element={<Profile />} />
               </Route>
+            </Route>
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </TooltipProvider>
-        </LeadsProvider>
-      </AuthProvider>
-    </ThemeProvider>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </TooltipProvider>
+      </LeadsProvider>
+    </AuthProvider>
   </BrowserRouter>
 )
 
