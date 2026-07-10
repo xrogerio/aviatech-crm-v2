@@ -56,9 +56,14 @@ export const projectsService = {
       .update(updates)
       .eq('id', id)
       .select('*, leads(empresa)')
-      .single()
+      .maybeSingle()
 
     if (error) throw error
+    if (!data) {
+      throw new Error(
+        'Projeto não encontrado ou você não tem permissão para atualizá-lo.',
+      )
+    }
     return data as unknown as Project
   },
 
