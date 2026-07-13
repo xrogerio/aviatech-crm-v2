@@ -51,19 +51,22 @@ export const projectsService = {
   },
 
   async updateProject(id: string, updates: Partial<Project>): Promise<Project> {
+    const {
+      id: _id,
+      created_at: _created_at,
+      created_by: _created_by,
+      leads: _leads,
+      ...cleanUpdates
+    } = updates
+
     const { data, error } = await supabase
       .from('projects')
-      .update(updates)
+      .update(cleanUpdates)
       .eq('id', id)
       .select('*, leads(empresa)')
-      .maybeSingle()
+      .single()
 
     if (error) throw error
-    if (!data) {
-      throw new Error(
-        'Projeto não encontrado ou você não tem permissão para atualizá-lo.',
-      )
-    }
     return data as unknown as Project
   },
 
