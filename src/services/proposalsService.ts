@@ -138,13 +138,16 @@ export const proposalsService = {
       .eq('id', user.id)
       .single()
 
-    // If numero is not provided, generate random non-repeating number between 0 and 999 followed by '/2026'
+    // Número da proposta aleatório (0 a 999 + '/2026') sem repetir base
     let proposalNumber = proposal.numero
     if (!proposalNumber) {
       try {
         proposalNumber = await this.generateNextProposalNumber()
       } catch (err) {
-        console.warn('Fallback to trigger for proposal number', err)
+        console.warn(
+          'Fallback para trigger de banco no número da proposta',
+          err,
+        )
       }
     }
 
