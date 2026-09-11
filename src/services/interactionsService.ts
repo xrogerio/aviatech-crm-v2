@@ -7,14 +7,20 @@ export type Interaction =
     project_id?: string | null
     created_at?: string
     updated_at?: string
+    interaction_date?: string | null
+    hours_used?: number | null
   }
 export type CreateInteractionDTO =
   Database['public']['Tables']['interactions']['Insert'] & {
     project_id?: string | null
+    interaction_date?: string | null
+    hours_used?: number | null
   }
 export type UpdateInteractionDTO =
   Database['public']['Tables']['interactions']['Update'] & {
     project_id?: string | null
+    interaction_date?: string | null
+    hours_used?: number | null
   }
 
 export const interactionsService = {
