@@ -20,9 +20,7 @@ import Layout from './components/Layout'
 import Settings from './pages/Settings'
 import Profile from './pages/Profile'
 const App = () => (
-  <BrowserRouter
-    future={{ v7_startTransition: false, v7_relativeSplatPath: false }}
-  >
+  <BrowserRouter>
     <AuthProvider>
       <LeadsProvider>
         <TooltipProvider>

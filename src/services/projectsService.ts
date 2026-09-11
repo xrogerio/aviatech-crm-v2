@@ -40,9 +40,10 @@ export const projectsService = {
     } = await supabase.auth.getUser()
     if (!user) throw new Error('User not authenticated')
 
+    const insertPayload: any = { ...project, created_by: user.id }
     const { data, error } = await supabase
       .from('projects')
-      .insert([{ ...project, created_by: user.id }])
+      .insert([insertPayload])
       .select('*, leads(empresa)')
       .single()
 

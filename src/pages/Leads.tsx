@@ -59,7 +59,17 @@ export default function Leads() {
         setEditingLead(null)
       }
     } else {
-      const success = await addLead(values)
+      const success = await addLead({
+        company: values.company,
+        contactName: values.contactName,
+        email: values.email || '',
+        phone: values.phone || '',
+        segment: values.segment || '',
+        origin: values.origin || '',
+        cnpj: values.cnpj,
+        cargo: values.cargo,
+        address: values.address,
+      })
       if (success) {
         toast({
           title: 'Lead cadastrado!',

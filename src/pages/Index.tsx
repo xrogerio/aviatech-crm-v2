@@ -288,14 +288,19 @@ export default function Index() {
                   <ChartTooltip
                     cursor={{ fill: 'var(--color-valor)', opacity: 0.1 }}
                     content={
-                      <ChartTooltipContent
-                        formatter={(value) =>
-                          new Intl.NumberFormat('pt-BR', {
-                            style: 'currency',
-                            currency: 'BRL',
-                          }).format(value as number)
-                        }
-                      />
+                      (({ active, payload, label }: any) => (
+                        <ChartTooltipContent
+                          active={active}
+                          payload={payload}
+                          label={label}
+                          formatter={(value: any) =>
+                            new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            }).format(value as number)
+                          }
+                        />
+                      )) as any
                     }
                   />
                   <Bar
@@ -363,14 +368,19 @@ export default function Index() {
                   <ChartTooltip
                     cursor={{ fill: 'var(--color-valor)', opacity: 0.1 }}
                     content={
-                      <ChartTooltipContent
-                        formatter={(value) =>
-                          new Intl.NumberFormat('pt-BR', {
-                            style: 'currency',
-                            currency: 'BRL',
-                          }).format(value as number)
-                        }
-                      />
+                      (({ active, payload, label }: any) => (
+                        <ChartTooltipContent
+                          active={active}
+                          payload={payload}
+                          label={label}
+                          formatter={(value: any) =>
+                            new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            }).format(value as number)
+                          }
+                        />
+                      )) as any
                     }
                   />
                   <Bar

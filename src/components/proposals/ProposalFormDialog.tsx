@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/select'
 import { DatePicker } from '@/components/ui/date-picker'
 import { useLeads } from '@/context/LeadsContext'
-import { Proposal } from '@/services/proposalsService'
+import { Proposal, proposalsService } from '@/services/proposalsService'
 import { projectsService, Project } from '@/services/projectsService'
 import { usersService, UserProfile } from '@/services/usersService'
 
@@ -49,8 +49,8 @@ const proposalSchema = z.object({
     .array(
       z.object({
         description: z.string().min(1, 'Descrição do item obrigatória'),
-        quantity: z.coerce.number().min(1, 'Quantidade mínima é 1'),
-        unitPrice: z.coerce.number(),
+        quantity: z.number().min(1, 'Quantidade mínima é 1'),
+        unitPrice: z.number(),
       }),
     )
     .min(1, 'Adicione pelo menos um item à proposta'),
@@ -74,22 +74,32 @@ export function ProposalFormDialog({
   const { leads } = useLeads()
   const [projects, setProjects] = useState<Project[]>([])
   const [usersList, setUsersList] = useState<UserProfile[]>([])
+  const [generatedNumber, setGeneratedNumber] = useState<string>('')
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [projectsData, usersData] = await Promise.all([
-          projectsService.getProjects(),
-          usersService.getUsers(),
-        ])
+        const promises: [
+          Promise<Project[]>,
+          Promise<UserProfile[]>,
+          Promise<string>?,
+        ] = [projectsService.getProjects(), usersService.getUsers()]
+        if (!initialData) {
+          promises.push(proposalsService.generateNextProposalNumber())
+        }
+        const [projectsData, usersData, nextNumber] =
+          await Promise.all(promises)
         setProjects(projectsData)
         setUsersList(usersData)
+        if (nextNumber) {
+          setGeneratedNumber(nextNumber)
+        }
       } catch (error) {
         console.error('Failed to load data', error)
       }
     }
     if (open) loadData()
-  }, [open])
+  }, [open, initialData])
 
   const form = useForm<ProposalFormValues>({
     resolver: zodResolver(proposalSchema),
@@ -169,10 +179,13 @@ export function ProposalFormDialog({
 
   const handleSubmit = async (values: ProposalFormValues) => {
     try {
-      // Inject calculated total value
-      const submissionData = {
+      // Inject calculated total value and proposal number if creating
+      const submissionData: any = {
         ...values,
         valor: totalValue,
+      }
+      if (!initialData && generatedNumber) {
+        submissionData.numero = generatedNumber
       }
       await onSubmit(submissionData)
       onOpenChange(false)
@@ -223,7 +236,7 @@ export function ProposalFormDialog({
               <FormControl>
                 <Input
                   readOnly
-                  value={initialData?.numero || 'Gerado automaticamente'}
+                  value={initialData?.numero || generatedNumber || 'Gerando...'}
                   className="bg-muted text-muted-foreground font-mono md:w-1/2"
                 />
               </FormControl>
@@ -271,7 +284,7 @@ export function ProposalFormDialog({
                           readOnly
                           value={
                             selectedLead
-                              ? `${selectedLead.empresa || selectedLead.company || ''} - ${selectedLead.contato || selectedLead.contactName || ''}`
+                              ? `${selectedLead.company || ''} - ${selectedLead.contactName || ''}`
                               : 'Selecione um projeto para carregar o cliente'
                           }
                           className="bg-muted text-muted-foreground"
@@ -480,13 +493,11 @@ export function ProposalFormDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {usersList
-                          .filter((u) => u.role !== 'admin')
-                          .map((u) => (
-                            <SelectItem key={u.id} value={u.id}>
-                              {u.name} {u.cargo ? `(${u.cargo})` : ''}
-                            </SelectItem>
-                          ))}
+                        {usersList.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>
+                            {u.name} {u.cargo ? `(${u.cargo})` : ''}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -497,7 +508,7 @@ export function ProposalFormDialog({
                 <FormLabel>Signatário (Cliente)</FormLabel>
                 <div className="mt-2 text-sm p-2 px-3 border bg-muted text-muted-foreground rounded-md min-h-10 flex items-center">
                   {selectedLead
-                    ? selectedLead.contato || selectedLead.contactName || ''
+                    ? selectedLead.contactName || ''
                     : 'Selecione um projeto'}
                 </div>
               </FormItem>

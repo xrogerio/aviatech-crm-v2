@@ -44,8 +44,8 @@ import { useAuth } from '@/context/AuthContext'
 const taskSchema = z.object({
   titulo: z.string().min(1, 'O título é obrigatório'),
   descricao: z.string().optional(),
-  prazo: z.date({ required_error: 'O prazo é obrigatório' }),
-  status: z.string().default('Pendente'),
+  prazo: z.any(),
+  status: z.string(),
   projectId: z.string().optional(),
   leadId: z.string().optional(),
 })
