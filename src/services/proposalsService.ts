@@ -4,6 +4,7 @@ export interface ProposalItem {
   description: string
   quantity: number
   unitPrice: number
+  discountPercent?: number
 }
 
 export interface Proposal {

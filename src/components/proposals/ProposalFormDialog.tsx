@@ -74,6 +74,18 @@ const proposalSchema = z.object({
           .pipe(
             z.number().min(0, 'Valor unitário deve ser maior ou igual a 0'),
           ),
+        discountPercent: z
+          .union([z.number(), z.string()])
+          .optional()
+          .transform((val) =>
+            val === undefined || val === '' ? 0 : parseNumericValue(val),
+          )
+          .pipe(
+            z
+              .number()
+              .min(0, 'Desconto não pode ser negativo')
+              .max(100, 'Desconto não pode ser maior que 100%'),
+          ),
       }),
     )
     .min(1, 'Adicione pelo menos um item à proposta'),
@@ -135,7 +147,9 @@ export function ProposalFormDialog({
       descricao: '',
       observacoes: '',
       status: 'Rascunho',
-      itens: [{ description: '', quantity: 1, unitPrice: 0 }],
+      itens: [
+        { description: '', quantity: 1, unitPrice: 0, discountPercent: 0 },
+      ],
     },
   })
 
@@ -160,12 +174,17 @@ export function ProposalFormDialog({
   })
 
   const watchedItems = form.watch('itens')
-  const totalValue = watchedItems?.reduce(
-    (acc, item) =>
-      acc +
-      parseNumericValue(item?.quantity) * parseNumericValue(item?.unitPrice),
-    0,
-  )
+  const totalValue = watchedItems?.reduce((acc, item) => {
+    const qty = parseNumericValue(item?.quantity)
+    const price = parseNumericValue(item?.unitPrice)
+    const discount = Math.min(
+      100,
+      Math.max(0, parseNumericValue(item?.discountPercent)),
+    )
+    const subtotal = qty * price
+    const discounted = subtotal * (1 - discount / 100)
+    return acc + discounted
+  }, 0)
 
   useEffect(() => {
     if (open) {
@@ -183,8 +202,20 @@ export function ProposalFormDialog({
           status: initialData.status,
           itens:
             initialData.itens && initialData.itens.length > 0
-              ? initialData.itens
-              : [{ description: '', quantity: 1, unitPrice: 0 }],
+              ? initialData.itens.map((item) => ({
+                  description: item.description,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                  discountPercent: item.discountPercent ?? 0,
+                }))
+              : [
+                  {
+                    description: '',
+                    quantity: 1,
+                    unitPrice: 0,
+                    discountPercent: 0,
+                  },
+                ],
         })
       } else {
         form.reset({
@@ -196,7 +227,9 @@ export function ProposalFormDialog({
           observacoes: '',
           validade: undefined,
           status: 'Rascunho',
-          itens: [{ description: '', quantity: 1, unitPrice: 0 }],
+          itens: [
+            { description: '', quantity: 1, unitPrice: 0, discountPercent: 0 },
+          ],
         })
       }
     }
@@ -204,11 +237,12 @@ export function ProposalFormDialog({
 
   const handleSubmit = async (values: ProposalFormOutput) => {
     try {
-      // Ensure items have numeric quantity and unitPrice
+      // Ensure items have numeric quantity, unitPrice and discountPercent
       const sanitizedItens = values.itens.map((item) => ({
         description: item.description,
         quantity: Number(item.quantity),
         unitPrice: Number(item.unitPrice),
+        discountPercent: Number(item.discountPercent || 0),
       }))
 
       // Inject calculated total value and proposal number if creating
@@ -398,7 +432,12 @@ export function ProposalFormDialog({
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    append({ description: '', quantity: 1, unitPrice: 0 })
+                    append({
+                      description: '',
+                      quantity: 1,
+                      unitPrice: 0,
+                      discountPercent: 0,
+                    })
                   }
                 >
                   <Plus className="h-4 w-4 mr-2" /> Adicionar Item
@@ -411,7 +450,7 @@ export function ProposalFormDialog({
                     key={field.id}
                     className="grid grid-cols-12 gap-3 items-end"
                   >
-                    <div className="col-span-6">
+                    <div className="col-span-5">
                       <FormField
                         control={form.control}
                         name={`itens.${index}.description`}
@@ -448,7 +487,7 @@ export function ProposalFormDialog({
                         )}
                       />
                     </div>
-                    <div className="col-span-3">
+                    <div className="col-span-2">
                       <FormField
                         control={form.control}
                         name={`itens.${index}.unitPrice`}
@@ -459,6 +498,31 @@ export function ProposalFormDialog({
                             </FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <FormField
+                        control={form.control}
+                        name={`itens.${index}.discountPercent`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className={index !== 0 ? 'sr-only' : ''}>
+                              Desconto (%)
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="any"
+                                placeholder="0"
+                                {...field}
+                                value={field.value ?? 0}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

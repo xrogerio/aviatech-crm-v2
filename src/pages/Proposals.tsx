@@ -186,30 +186,35 @@ export default function Proposals() {
           <table>
             <thead>
               <tr>
-                <th style="width: 50%">Descrição</th>
-                <th style="width: 15%">Qtd</th>
-                <th style="width: 15%">Valor Unit.</th>
-                <th style="width: 20%; text-align: right">Total</th>
+                <th style="width: 40%">Descrição</th>
+                <th style="width: 12%">Qtd</th>
+                <th style="width: 18%">Valor Unit.</th>
+                <th style="width: 12%">Desc. (%)</th>
+                <th style="width: 18%; text-align: right">Total</th>
               </tr>
             </thead>
             <tbody>
               ${
                 proposal.itens
-                  ?.map(
-                    (item) => `
+                  ?.map((item) => {
+                    const discount = Number(item.discountPercent || 0)
+                    const itemTotal =
+                      item.quantity * item.unitPrice * (1 - discount / 100)
+                    return `
                 <tr>
                   <td>${item.description}</td>
                   <td>${item.quantity}</td>
                   <td>${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unitPrice)}</td>
-                  <td style="text-align: right">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.quantity * item.unitPrice)}</td>
+                  <td>${discount > 0 ? `${discount}%` : '-'}</td>
+                  <td style="text-align: right">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(itemTotal)}</td>
                 </tr>
-              `,
-                  )
+              `
+                  })
                   .join('') ||
-                '<tr><td colspan="4">Nenhum item listado</td></tr>'
+                '<tr><td colspan="5">Nenhum item listado</td></tr>'
               }
               <tr>
-                <td colspan="3" class="total-label total-row">Valor Total:</td>
+                <td colspan="4" class="total-label total-row">Valor Total:</td>
                 <td class="total-row" style="text-align: right">
                   ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(proposal.valor || 0)}
                 </td>
