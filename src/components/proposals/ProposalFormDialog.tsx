@@ -36,6 +36,21 @@ import { Proposal, proposalsService } from '@/services/proposalsService'
 import { projectsService, Project } from '@/services/projectsService'
 import { usersService, UserProfile } from '@/services/usersService'
 
+const parseNumericValue = (val: unknown): number => {
+  if (typeof val === 'number') {
+    return isNaN(val) ? 0 : val
+  }
+  if (typeof val === 'string') {
+    const trimmed = val.trim()
+    if (!trimmed) return 0
+    // Replace comma with dot if present to support pt-BR format (e.g. "198,92" or "198.92")
+    const normalized = trimmed.replace(',', '.')
+    const parsed = parseFloat(normalized)
+    return isNaN(parsed) ? 0 : parsed
+  }
+  return 0
+}
+
 const proposalSchema = z.object({
   titulo: z.string().min(3, 'O título deve ter pelo menos 3 caracteres'),
   project_id: z.string().min(1, 'Selecione um projeto'),
@@ -49,14 +64,23 @@ const proposalSchema = z.object({
     .array(
       z.object({
         description: z.string().min(1, 'Descrição do item obrigatória'),
-        quantity: z.number().min(1, 'Quantidade mínima é 1'),
-        unitPrice: z.number(),
+        quantity: z
+          .union([z.number(), z.string()])
+          .transform((val) => parseNumericValue(val))
+          .pipe(z.number().min(1, 'Quantidade mínima é 1')),
+        unitPrice: z
+          .union([z.number(), z.string()])
+          .transform((val) => parseNumericValue(val))
+          .pipe(
+            z.number().min(0, 'Valor unitário deve ser maior ou igual a 0'),
+          ),
       }),
     )
     .min(1, 'Adicione pelo menos um item à proposta'),
 })
 
-type ProposalFormValues = z.infer<typeof proposalSchema>
+type ProposalFormValues = z.input<typeof proposalSchema>
+type ProposalFormOutput = z.output<typeof proposalSchema>
 
 interface ProposalFormDialogProps {
   open: boolean
@@ -101,7 +125,7 @@ export function ProposalFormDialog({
     if (open) loadData()
   }, [open, initialData])
 
-  const form = useForm<ProposalFormValues>({
+  const form = useForm<ProposalFormValues, any, ProposalFormOutput>({
     resolver: zodResolver(proposalSchema),
     defaultValues: {
       titulo: '',
@@ -138,7 +162,8 @@ export function ProposalFormDialog({
   const watchedItems = form.watch('itens')
   const totalValue = watchedItems?.reduce(
     (acc, item) =>
-      acc + Number(item.quantity || 0) * Number(item.unitPrice || 0),
+      acc +
+      parseNumericValue(item?.quantity) * parseNumericValue(item?.unitPrice),
     0,
   )
 
@@ -177,11 +202,20 @@ export function ProposalFormDialog({
     }
   }, [open, initialData, form])
 
-  const handleSubmit = async (values: ProposalFormValues) => {
+  const handleSubmit = async (values: ProposalFormOutput) => {
     try {
+      // Ensure items have numeric quantity and unitPrice
+      const sanitizedItens = values.itens.map((item) => ({
+        description: item.description,
+        quantity: Number(item.quantity),
+        unitPrice: Number(item.unitPrice),
+      }))
+
       // Inject calculated total value and proposal number if creating
       const submissionData: any = {
         ...values,
+        validade: values.validade,
+        itens: sanitizedItens,
         valor: totalValue,
       }
       if (!initialData && generatedNumber) {
