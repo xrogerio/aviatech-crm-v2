@@ -38,6 +38,11 @@ END $$;
 -- Ensure RLS on companies
 ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
 
+-- Explicit grants for PostgREST / Data API access
+GRANT SELECT ON public.companies TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.companies TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.companies TO service_role;
+
 DROP POLICY IF EXISTS "Anyone can view companies" ON public.companies;
 DROP POLICY IF EXISTS "Authenticated users can select companies" ON public.companies;
 DROP POLICY IF EXISTS "Admins can insert companies" ON public.companies;

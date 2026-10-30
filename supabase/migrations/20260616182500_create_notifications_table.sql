@@ -18,6 +18,11 @@ ALTER TABLE public.notifications ALTER COLUMN created_at SET DEFAULT now();
 -- Enable Row Level Security
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
+-- Explicit grants for PostgREST / Data API access
+GRANT SELECT ON public.notifications TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.notifications TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.notifications TO service_role;
+
 -- Clean up any potential conflicting old policies
 DROP POLICY IF EXISTS "View Notifications Policy" ON public.notifications;
 DROP POLICY IF EXISTS "Update Notifications Policy" ON public.notifications;

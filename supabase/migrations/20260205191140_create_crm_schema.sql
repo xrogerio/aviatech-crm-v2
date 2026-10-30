@@ -58,6 +58,27 @@ ALTER TABLE public.interactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.proposals ENABLE ROW LEVEL SECURITY;
 
+-- Explicit grants for PostgREST / Data API access
+GRANT SELECT ON public.users TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.users TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.users TO service_role;
+
+GRANT SELECT ON public.leads TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.leads TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.leads TO service_role;
+
+GRANT SELECT ON public.interactions TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.interactions TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.interactions TO service_role;
+
+GRANT SELECT ON public.tasks TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.tasks TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.tasks TO service_role;
+
+GRANT SELECT ON public.proposals TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.proposals TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.proposals TO service_role;
+
 -- Trigger to create public.users on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$

@@ -8,6 +8,11 @@ CREATE TABLE IF NOT EXISTS public.organizations (
 -- Enable RLS on organizations
 ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
 
+-- Explicit grants for PostgREST / Data API access
+GRANT SELECT ON public.organizations TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.organizations TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.organizations TO service_role;
+
 -- Helper function to get current user's org id (Bypassing RLS for internal use in defaults/policies)
 CREATE OR REPLACE FUNCTION public.get_my_org_id()
 RETURNS UUID

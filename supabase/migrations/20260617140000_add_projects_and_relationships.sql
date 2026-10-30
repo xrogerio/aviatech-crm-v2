@@ -13,6 +13,11 @@ ALTER TABLE public.interactions ADD COLUMN IF NOT EXISTS project_id UUID REFEREN
 
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 
+-- Explicit grants for PostgREST / Data API access
+GRANT SELECT ON public.projects TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.projects TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.projects TO service_role;
+
 DROP POLICY IF EXISTS "Authenticated users can select projects" ON public.projects;
 CREATE POLICY "Authenticated users can select projects" ON public.projects
     FOR SELECT TO authenticated USING (true);
